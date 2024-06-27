@@ -28,11 +28,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
       }, $first_row);
       //$excelColumnNames and $conn from SqlConnection.php
       include_once("SqlConnection.php");
-      $previousPhylum = "";
-      $previousClass = "";
-      $previousOrder = "";
+      $previousPhylum = "'Unknown'";
+      $previousClass = "'Unknown'";
+      $previousOrder = "'Unknown'";
       $previousSuperfamily = "'Unknown'";
-      $previousFamily = "";
+      $previousFamily = "'Unknown'";
       if ($first_row === $excelColumnNames) {
         echo "<br>Columns in correct format, parsing...<br>";
         $unrecognizedStages = [];
