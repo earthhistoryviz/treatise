@@ -2,4 +2,4 @@ site/uploads/*
 !site/uploads/*.xlsx
 site/*.png
 !site/logo.png
-db/Brachiopod.xlsx
+db/*.xlsx
