@@ -60,10 +60,35 @@
         <br><br>
         <h3>Diversity Over Time Charts Created from Our Database:</h3>
         <br>
-        <div class="default-images" class="d-flex flex-column align-items-center justify-content-center">
-          <img src="./total_genera.png" alt="Total Genera Image" class="img-fluid ml-2">
-          <img src="./new_genera.png" alt="New Genera Image" class="img-fluid ml-2">
-          <img src="./extinct_genera.png" alt="Extinct Genera Image" class="img-fluid ml-2">
+        <?php
+        /**
+       * This function appends the last modification time of a file to its URL as a query parameter.
+       * This technique is known as cache busting, and it ensures that browsers always load the most recent version of the file.
+       * 
+       * How it works:
+       * - The function checks the last modification time of the specified file.
+       * - It appends this modification time as a query parameter to the file's URL.
+       * - When the file is not modified, the URL might look like 'image.png?v=1627392000'.
+       * - If the file is modified, the modification time changes, e.g., to 1627392100.
+       * - The new URL will be 'image.png?v=1627392100'.
+       * - The browser sees this as a different URL, which doesn't match the cached version, thus it fetches the new image.
+       *
+       * @param string $filename The name of the file (e.g., 'total_genera.png').
+       * @return string The filename appended with its last modification time as a query parameter (e.g., 'total_genera.png?v=1627392000').
+       */
+        function versioned_image($filename) {
+            $file_path = __DIR__ . '/' . $filename;
+            if (file_exists($file_path)) {
+                // apparent . is concactenation in PHP
+                return $filename . '?v=' . filemtime($file_path); // Append the last modified time as a query parameter
+            }
+            return $filename; // If the file does not exist, return the original filename
+        }
+        ?>
+        <div class="default-images d-flex flex-column align-items-center justify-content-center">
+          <img src="<?= versioned_image('total_genera.png') ?>" alt="Total Genera Image" class="img-fluid ml-2">
+          <img src="<?= versioned_image('new_genera.png') ?>" alt="New Genera Image" class="img-fluid ml-2">
+          <img src="<?= versioned_image('extinct_genera.png') ?>" alt="Extinct Genera Image" class="img-fluid ml-2">
         </div> <?php
       } ?>
     </div>

@@ -51,7 +51,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
             // Now do calculations about age here, geological stages in $geologicalStages
             // First check that stages parsed from treatise file exists in $geologicalStages
             //base stage
-            var_dump($genera);
             echo "<br>Parsing <b>$genera</b>:";
             $conversionFailed = false;
             $convertedStage = standardizeGeologicalStage($baseStage, $geologicalStages);
@@ -75,14 +74,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
             if ($conversionFailed) continue;
             // Now that they exist we can access values from $geologicalStages, you can see these values in TimescaleLib.php
             $baseData = $geologicalStages[$baseStage];
-            $baseDate = $baseData["base"];
+            $baseDate = round($baseData["base"], 2);
             $baseFractionUp = (float)$baseData["percent_up"];
             $beginningStage = $baseData["stage"];
             $internationalBase = $baseData["international_base"];
             echo "<br>Computed base age of <b>$genera</b> as $baseDate.";
             echo "<br>Found First Occurrence <b>$beginningStage</b> within International Stage as <b>$internationalBase</b>.";
             $topData = $geologicalStages[$topStage];
-            $topDate = $topData["top"];
+            $topDate = round($topData["top"], 2);
             $topFractionUp = (float)$topData["percent_up"];
             $endingStage = $topData["stage"];
             $internationalTop = $topData["international_top"];

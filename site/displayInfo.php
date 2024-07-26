@@ -129,7 +129,7 @@
               <div id="Figure_Caption">
                 <?= displayImage("Figure_Caption", $genera)?>
               </div>
-              <b class="green-text" style="position: absolute;">(Click to enlarge in a new window)</b>
+              <b class="green-text">(Click to enlarge in a new window)</b>
             </div>
             <div id="Figure_Caption" class="horiz" style="text-align: left;">
                 <div id="Figure_Caption">

@@ -64,7 +64,7 @@ else
   echo "=> Using an existing volume of MySQL"
 fi
 
-
+pip3 install matplotlib==3.3.4 mysql-connector-python==8.0.5
 exec supervisord -n -c /etc/supervisor/supervisord.conf
 
 
