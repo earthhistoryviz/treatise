@@ -7,6 +7,7 @@ $stagefilter = $_GET['stagefilter'];
 $agefilterstart = $_GET['agefilterstart'];
 $agefilterend = $_GET['agefilterend'];
 $periodfilter = $_GET['periodfilter'];
+$genusOnly = $_GET['genusOnly'];
 
 if (!isset($_GET['agefilterend']) || $agefilterend == "" || $agefilterstart < $agefilterend) {
 	$agefilterend = $agefilterstart;
@@ -25,6 +26,14 @@ $searchquery = '%' . $searchquery . '%';
 $geographyfilter = '%' . $geographyfilter . '%';
 $stagefilter = '%' . $stagefilter . '%';
 $classfilter = '%' . $classfilter . '%';
+
+// POTENTIAL OPTIMIZATION: Instead of selecting all columns, we could select only the columns we need and echo early
+// allColumnNames comes from SqlConnection.php, it is an array of all the column names in the fossil table
+// including columns manually defined in create_db.php and the excel file
+// we use it in searchAPI.php to define all columns that will be returned in the JSON response
+if ($genusOnly == "true") {
+	$allColumnNames = ["Genus"];
+}
 
 $sql = "SELECT * FROM fossil WHERE Genus LIKE ? AND geography LIKE ? AND beginning_stage LIKE ?";
 if ($classfilter == "%%") {
