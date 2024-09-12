@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Fossil Search</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <link rel="stylesheet" type="text/css" href="style.css"/>
 </head>
 <body>
@@ -36,23 +38,76 @@
               return $a['beginning_date'] - $b['beginning_date'];
             });
           }
+
+          // Group fossils by Class and then by Order
+          $groupedFossils = [];
+          foreach ($response as $item) {
+            $class = $item['Class'] ?? 'Unknown Class'; // Use 'Unknown Class' if 'Class' is not set
+            $order = $item['Order'] ?? 'Unknown Order'; // Use 'Unknown Order' if 'Order' is not set
+
+            if (!isset($groupedFossils[$class])) {
+              $groupedFossils[$class] = [];
+            }
+            if (!isset($groupedFossils[$class][$order])) {
+              $groupedFossils[$class][$order] = [];
+            }
+            $groupedFossils[$class][$order][] = $item;
+          }
+
           $colors = [];
           foreach($stages as $stage) {
             $colors[$stage["stage"]] = $stage["color"];
-          } ?>
+          } 
 
-          <div class="cards w-100"> <?php
-            foreach ($response as $item) {
-              $backgroundColor = implode(",", explode("/", $colors[$item['beginning_stage']]));
-              $generaName = htmlspecialchars($item['Genus']); ?>
-              <div class="card">
-                <div style="background-color: rgba(<?= $backgroundColor ?>, 1.0);" class="card-body">
-                  <a href="displayInfo.php?genera=<?php echo urlencode($generaName); ?>" style="color: black;"><?= $generaName ?></a>
-                </div> 
-              </div> <?php
-            } ?>
-          </div> <?php
-        } else { ?>
+          // Display fossils grouped by Class and Order using Bootstrap Accordion
+          echo '<div class="expand-collapse-buttons">';
+          echo '<button class="btn btn-primary mx-2" id="expand-all">Expand All</button>';
+          echo '<button class="btn btn-secondary mx-2" id="collapse-all">Collapse All</button>';
+          echo '</div>';
+
+          echo '<div class="accordion" id="classAccordion">';
+          foreach ($groupedFossils as $class => $orders) { ?>
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="heading-<?= htmlspecialchars($class) ?>">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-<?= htmlspecialchars($class) ?>" aria-expanded="true" aria-controls="collapse-<?= htmlspecialchars($class) ?>">
+                  <?= htmlspecialchars($class) ?>
+                </button>
+              </h2>
+              <div id="collapse-<?= htmlspecialchars($class) ?>" class="accordion-collapse collapse show" aria-labelledby="heading-<?= htmlspecialchars($class) ?>">
+                <div class="accordion-body">
+                  <div class="accordion" id="orderAccordion-<?= htmlspecialchars($class) ?>">
+                    <?php foreach ($orders as $order => $fossils) { ?>
+                      <div class="accordion-item">
+                        <h2 class="accordion-header" id="heading-<?= htmlspecialchars($order) ?>">
+                          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-<?= htmlspecialchars($order) ?>" aria-expanded="false" aria-controls="collapse-<?= htmlspecialchars($order) ?>">
+                            <?= htmlspecialchars($order) ?>
+                          </button>
+                        </h2>
+                        <div id="collapse-<?= htmlspecialchars($order) ?>" class="accordion-collapse collapse" aria-labelledby="heading-<?= htmlspecialchars($order) ?>">
+                          <div class="accordion-body">
+                            <div class="cards w-100">
+                              <?php foreach ($fossils as $item) { 
+                                $backgroundColor = implode(",", explode("/", $colors[$item['beginning_stage']]));
+                                $generaName = htmlspecialchars($item['Genus']); ?>
+                                <div class="card">
+                                  <div style="background-color: rgba(<?= $backgroundColor ?>, 1.0);" class="card-body">
+                                    <a href="displayInfo.php?genera=<?php echo urlencode($generaName); ?>" style="color: black;"><?= $generaName ?></a>
+                                  </div> 
+                                </div> 
+                              <?php } ?>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    <?php } ?>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <?php } 
+          echo '</div>';
+          ?>
+        <?php } else { ?>
           <br><br>
           <h4 style='text-align: center;'>No genera found.</h4> <?php
         }
@@ -92,5 +147,26 @@
         </div> <?php
       } ?>
     </div>
+    <script>
+      document.getElementById('expand-all').addEventListener('click', function() {
+        let accordions = document.querySelectorAll('.accordion-collapse');
+        accordions.forEach(accordion => {
+          if (!accordion.classList.contains('show')) {
+            new bootstrap.Collapse(accordion, {
+              show: true
+            });
+          }
+        });
+      });
+
+      document.getElementById('collapse-all').addEventListener('click', function() {
+        let accordions = document.querySelectorAll('.accordion-collapse.show');
+        accordions.forEach(accordion => {
+          new bootstrap.Collapse(accordion, {
+            hide: true
+          });
+        });
+      });
+    </script>
 </body>
 </html>
