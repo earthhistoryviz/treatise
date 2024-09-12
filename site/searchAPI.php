@@ -2,6 +2,7 @@
 include_once("SqlConnection.php");
 $searchquery = $_GET['searchquery'];
 $classfilter = $_GET['classfilter'];
+$orderfilter = $_GET['orderfilter'];
 $geographyfilter = $_GET['geographyfilter'];
 $stagefilter = $_GET['stagefilter'];
 $agefilterstart = $_GET['agefilterstart'];
@@ -21,11 +22,15 @@ if (!$stagefilter || $stagefilter == "All") {
 if (!$classfilter || $classfilter == "All") {
 	$classfilter = "";
 }
+if (!$orderfilter || $orderfilter == "All") {
+	$orderfilter = "";
+}
 
 $searchquery = '%' . $searchquery . '%';
 $geographyfilter = '%' . $geographyfilter . '%';
 $stagefilter = '%' . $stagefilter . '%';
 $classfilter = '%' . $classfilter . '%';
+$orderfilter = '%' . $orderfilter . '%';
 
 // POTENTIAL OPTIMIZATION: Instead of selecting all columns, we could select only the columns we need and echo early
 // allColumnNames comes from SqlConnection.php, it is an array of all the column names in the fossil table
@@ -41,7 +46,12 @@ if ($classfilter == "%%") {
 } else {
 	$sql .= " AND Class LIKE ?";
 }
-$params = ["ssss", &$searchquery, &$geographyfilter, &$stagefilter, &$classfilter];
+if ($orderfilter == "%%") {
+	$sql .= " AND (`Order` LIKE ? OR `Order` IS NULL)";
+} else {
+	$sql .= " AND `Order` LIKE ?";
+}
+$params = ["sssss", &$searchquery, &$geographyfilter, &$stagefilter, &$classfilter, &$orderfilter];
 
 if ($agefilterstart != "") {
   $sql .= " AND NOT (beginning_date < ? OR ending_date > ?) "

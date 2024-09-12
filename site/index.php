@@ -21,6 +21,7 @@
         $url = "http://localhost/searchAPI.php"
         ."?searchquery=".urlencode($_GET["search"])
         ."&classfilter=".$_GET["classSearch"]
+        ."&orderfilter=".$_GET["orderSearch"]
         ."&geographyfilter=".$_GET["geographySearch"]
         ."&stagefilter=".$_GET["stageSearch"]
         ."&agefilterstart=".$_GET["agefilterstart"]
