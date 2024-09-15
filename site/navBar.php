@@ -8,6 +8,7 @@
         <h5 class="region-name">Treatise</h5>
       </div>
       <a href="index.php">Home</a>
+      <a href="plotOrderDiversity.php">Plot Order Diversity</a>
       <a style="margin-left: auto; padding-right: 10px;" href="/login.php">Admin Login</a>
     </div>
   <?php 
