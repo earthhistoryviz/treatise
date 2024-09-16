@@ -3,3 +3,4 @@ site/uploads/*
 site/*.png
 !site/logo.png
 db/*.xlsx
+.php-cs-fixer.cache
