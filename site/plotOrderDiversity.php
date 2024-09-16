@@ -219,7 +219,7 @@
             'Cretaceous': [[145.73, 66.04], [140/255, 205/255, 96/255]],
             'Paleogene': [[66.04, 23.04], [253/255, 108/255, 98/255]],
             'Neogene': [[23.04, 2.58], [255/255, 255/255, 51/255]],
-            'Quaternary': [[2.58, -50], [255/255, 237/255, 179/255]]
+            'Quaternary': [[2.58, -41], [255/255, 237/255, 179/255]]
         };
 
         const shapes = Object.keys(stage_ranges).map(stage => {
@@ -227,13 +227,13 @@
             return {
                 type: 'rect',
                 xref: 'x',
-                yref: 'y',
+                yref: 'paper',
                 x0: range[0],
                 x1: range[1],
-                y0: 0,
-                y1: -1,
-                fillcolor: `rgba(${color[0] * 255}, ${color[1] * 255}, ${color[2] * 255}, 0.5)`,
-                line: { width: 0 }
+                y0: -0.002,
+                y1: 0.05,
+                fillcolor: `rgba(${color[0] * 255}, ${color[1] * 255}, ${color[2] * 255}, 0.8)`,
+                line: { width: 0.25, color: 'black' }
             };
         });
 
@@ -241,46 +241,79 @@
             const [range] = stage_ranges[stage];
             return {
                 xref: 'x',
-                yref: 'y',
+                yref: 'paper',
                 x: (range[0] + range[1]) / 2,
-                y: -0.5,
-                text: stage,
+                y: 0.009,
+                text: stage.slice(0, 3),
                 showarrow: false,
                 font: {
-                    size: stage === "Neogene" ? 10 : 12,
+                    size: 15,
                     color: 'black'
                 },
                 align: 'center'
             };
         });
 
+        const borderShape = {
+            type: 'rect',
+            xref: 'paper',
+            yref: 'paper',
+            x0: 0,
+            y0: 0,
+            x1: 1,
+            y1: 1,
+            line: {
+                color: 'black',
+                width: 1
+            },
+            fillcolor: 'rgba(0,0,0,0)'
+        };
+
         // Plotting Total Genera
         Plotly.newPlot('plot-total', totalTraces, {
-            title: 'Total Genera Over Time',
-            xaxis: { title: 'Time (Million Years Ago)', autorange: 'reversed' },
-            yaxis: { title: 'Number of Genera'},
+            title: {
+                text: 'Total Genera Over Time',
+                font: {
+                weight: 'bold'
+                },
+                pad: {
+                   t: 1
+                },
+            },
+            xaxis: { title: 'Time (Million Years Ago)', autorange: 'reversed', showgrid: false, zeroline: false, ticks: 'outside', ticklen: 8, tickWidth: 2 },
+            yaxis: { title: { text: 'Number of Genera', standoff: 20}, showgrid: false, ticks: 'outside', ticklen: 8, tickWidth: 2 },
             height: 800,
-            shapes: shapes,
+            shapes: [...shapes, borderShape],
             annotations: annotations
         });
 
         // Plotting New Genera
         Plotly.newPlot('plot-new', newTraces, {
-            title: 'New Genera Over Time',
-            xaxis: { title: 'Time (Million Years Ago)', autorange: 'reversed' },
-            yaxis: { title: 'Number of New Genera' },
+            title: {
+                text: 'New Genera Over Time',
+                font: {
+                    weight: 'bold'
+                }
+            },
+            xaxis: { title: 'Time (Million Years Ago)', autorange: 'reversed', showgrid: false, zeroline: false, ticks: 'outside', ticklen: 8, tickWidth: 2 },
+            yaxis: { title: { text: 'Number of New Genera', standoff: 20}, showgrid: false, ticks: 'outside', ticklen: 8, tickWidth: 2 },
             height: 800,
-            shapes: shapes,
+            shapes: [...shapes, borderShape],
             annotations: annotations
         });
 
         // Plotting Extinct Genera
         Plotly.newPlot('plot-extinct', extinctTraces, {
-            title: 'Extinct Genera Over Time',
-            xaxis: { title: 'Time (Million Years Ago)', autorange: 'reversed' },
-            yaxis: { title: 'Number of Extinct Genera' },
+            title: {
+                text: 'Extinct Genera Over Time',
+                font: {
+                    weight: 'bold'
+                }
+            },
+            xaxis: { title: 'Time (Million Years Ago)', autorange: 'reversed', showgrid: false, zeroline: false, ticks: 'outside', ticklen: 8, tickWidth: 2 },
+            yaxis: { title: { text: 'Number of Extinct Genera', standoff: 20}, showgrid: false, ticks: 'outside', ticklen: 8, tickWidth: 2 },
             height: 800,
-            shapes: shapes,
+            shapes: [...shapes, borderShape],
             annotations: annotations
         });
     </script>
