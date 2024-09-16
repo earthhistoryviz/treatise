@@ -8,35 +8,32 @@ $REMAKE_TABLE = false;
 $conn = new mysqli($servername, $username, $password, $dbname);
 // Check connection
 if ($conn->connect_error) {
-  die("Connection failed: " . $conn->connect_error);
+    die("Connection failed: " . $conn->connect_error);
 }
-if(isset($_REQUEST['submit_btn']))
-{
-$uname = $_REQUEST['username'];
-$admin = $_REQUEST['level'];
-$alevel = False;
-$pass = $_REQUEST['password'];
-$rpass = $_REQUEST['rpassword'];
-if( $pass == $rpass) {
-  $rootpasw = password_hash($pass, PASSWORD_DEFAULT);
-  if($admin == "admin"){
-    $alevel = True;
-  }
-  $sql3 = "INSERT INTO user_info(uname,pasw,admin)
+if(isset($_REQUEST['submit_btn'])) {
+    $uname = $_REQUEST['username'];
+    $admin = $_REQUEST['level'];
+    $alevel = false;
+    $pass = $_REQUEST['password'];
+    $rpass = $_REQUEST['rpassword'];
+    if($pass == $rpass) {
+        $rootpasw = password_hash($pass, PASSWORD_DEFAULT);
+        if($admin == "admin") {
+            $alevel = true;
+        }
+        $sql3 = "INSERT INTO user_info(uname,pasw,admin)
   VALUES
   ('$uname', '$rootpasw',$alevel)";
-  if($conn->query($sql3) == TRUE){
-    echo "User added successfully";
+        if($conn->query($sql3) == true) {
+            echo "User added successfully";
 
-  }
-  else{
-    echo"Error adding user";
+        } else {
+            echo"Error adding user";
 
-  }
-}
-else{
-  echo"Passwords do not match";
-}
+        }
+    } else {
+        echo"Passwords do not match";
+    }
 }
 ?>
 

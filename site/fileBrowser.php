@@ -1,16 +1,16 @@
 <?php
 if ($_GET["type"] == "excel") {
-  $type = "excel";
-  $action = "uploadExcelFile.php";
-  $extension = ".xlsx";
-} else if ($_GET["type"] == "geojson") {
-  $type = "geojson";
-  $action = "uploadGeojson.php";
-  $extension = ".json,application/json";
+    $type = "excel";
+    $action = "uploadExcelFile.php";
+    $extension = ".xlsx";
+} elseif ($_GET["type"] == "geojson") {
+    $type = "geojson";
+    $action = "uploadGeojson.php";
+    $extension = ".json,application/json";
 } else {
-  $type = "images";
-  $action = "uploadFigureImages.php";
-  $extension = "application/zip";
+    $type = "images";
+    $action = "uploadFigureImages.php";
+    $extension = "application/zip";
 } ?>
 <!DOCTYPE html>
 <html lang="en">

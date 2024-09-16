@@ -1,4 +1,5 @@
 <?php
+
 $servername = "localhost";
 $username = "root";
 $password = "";
@@ -9,33 +10,33 @@ $dbname = "myDB";
 $conn = new mysqli($servername, $username, $password);
 // Check connection
 if ($conn->connect_error) {
-  die("Connection failed: " . $conn->connect_error);
+    die("Connection failed: " . $conn->connect_error);
 }
 $sql8 = "USE myDB";
-if ($conn->query($sql8) === TRUE) {
-  echo "Database Already Exists...Dropping Tables and Database to rebuild them.";
+if ($conn->query($sql8) === true) {
+    echo "Database Already Exists...Dropping Tables and Database to rebuild them.";
 } else {
-  echo "Database does not exist, rebuilding from scratch, ignore errors about dropping database " . $conn->error;
+    echo "Database does not exist, rebuilding from scratch, ignore errors about dropping database " . $conn->error;
 }
 $sql5 = "DROP TABLE IF EXISTS user_info";
-if ($conn->query($sql5) === TRUE) {
-  echo "\nTable user_info dropped successfully";
+if ($conn->query($sql5) === true) {
+    echo "\nTable user_info dropped successfully";
 } else {
-  echo "\nError dropping table user_info: " . $conn->error;
+    echo "\nError dropping table user_info: " . $conn->error;
 }
 
 $sql5 = "DROP TABLE IF EXISTS fossil";
-if ($conn->query($sql5) === TRUE) {
-  echo "\nTable user_info dropped successfully";
+if ($conn->query($sql5) === true) {
+    echo "\nTable user_info dropped successfully";
 } else {
-  echo "\nError dropping table user_info: " . $conn->error;
+    echo "\nError dropping table user_info: " . $conn->error;
 }
 // drop database
 $sql = "DROP DATABASE IF EXISTS myDB";
-if ($conn->query($sql) === TRUE) {
-  echo "\nDatabase dropped successfully";
+if ($conn->query($sql) === true) {
+    echo "\nDatabase dropped successfully";
 } else {
-  echo "\nError dropping database: " . $conn->error;
+    echo "\nError dropping database: " . $conn->error;
 }
 
 $conn->close();
@@ -44,20 +45,20 @@ $conn->close();
 $conn = new mysqli($servername, $username, $password);
 // Check connection
 if ($conn->connect_error) {
-  die("Connection failed: " . $conn->connect_error);
+    die("Connection failed: " . $conn->connect_error);
 }
 
 // Create database
 $sql = "CREATE DATABASE myDB";
-if ($conn->query($sql) === TRUE) {
-  echo "\nDatabase created successfully";
+if ($conn->query($sql) === true) {
+    echo "\nDatabase created successfully";
 } else {
-  echo "\nError creating database: " . $conn->error;
+    echo "\nError creating database: " . $conn->error;
 }
 
 $sql = "USE myDB";
-if ($conn->query($sql) === FALSE) {
-  echo "\nFailed to use database";
+if ($conn->query($sql) === false) {
+    echo "\nFailed to use database";
 }
 
 $sql4 = "CREATE TABLE user_info(
@@ -68,38 +69,38 @@ $sql4 = "CREATE TABLE user_info(
 )";
 
 
-$rootpasw = password_hash("TSCreator",PASSWORD_DEFAULT);
+$rootpasw = password_hash("TSCreator", PASSWORD_DEFAULT);
 $sql3 = "INSERT INTO user_info(uname, pasw, admin) VALUES ('root', '$rootpasw','True')";
-if ($conn->query($sql4)==TRUE && $conn->query($sql3)===TRUE) {
-  echo "\nUser_info table created successfully";
+if ($conn->query($sql4) == true && $conn->query($sql3) === true) {
+    echo "\nUser_info table created successfully";
 } else {
-  echo "\nError creating user_info table: " . $conn->error;
+    echo "\nError creating user_info table: " . $conn->error;
 }
 
 include_once("SimpleXLSX.php");
 $xlsx = SimpleXLSX::parse("Brachiopod.xlsx");
 $columns = [];
 if ($xlsx === false) {
-  echo "\nCan't open excel file.";
+    echo "\nCan't open excel file.";
 } else {
-  $row = $xlsx->rows(0)[0];
-  foreach ($row as $cell) {
-    if (!empty($cell)) {
-      $column_name = str_replace(" ", "_", $cell);
-      $columns[] = $column_name;
+    $row = $xlsx->rows(0)[0];
+    foreach ($row as $cell) {
+        if (!empty($cell)) {
+            $column_name = str_replace(" ", "_", $cell);
+            $columns[] = $column_name;
+        }
     }
-  }
-  //Create columns for CREATE TABLE statement
-  $sqlCreate = "CREATE TABLE fossil (ID int NOT NULL AUTO_INCREMENT PRIMARY KEY,";
-  foreach ($columns as $column) {
-    if ($column == "Genus") {
-      $sqlCreate .= "`$column` TEXT, UNIQUE(`$column`(255)),";
-    } else {
-      $sqlCreate .= "`$column` TEXT,";
+    //Create columns for CREATE TABLE statement
+    $sqlCreate = "CREATE TABLE fossil (ID int NOT NULL AUTO_INCREMENT PRIMARY KEY,";
+    foreach ($columns as $column) {
+        if ($column == "Genus") {
+            $sqlCreate .= "`$column` TEXT, UNIQUE(`$column`(255)),";
+        } else {
+            $sqlCreate .= "`$column` TEXT,";
+        }
     }
-  }
-  // put extra columns here (base conversion, top conversion, caculated age)
-  $sqlCreate .= "`beginning_stage` VARCHAR(255) DEFAULT 'Unkown',
+    // put extra columns here (base conversion, top conversion, caculated age)
+    $sqlCreate .= "`beginning_stage` VARCHAR(255) DEFAULT 'Unkown',
     `fraction_up_beginning_stage` FLOAT DEFAULT NULL,
     `beginning_date` FLOAT DEFAULT NULL,
     `ending_stage` VARCHAR(255) DEFAULT 'Unkown',
@@ -112,40 +113,40 @@ if ($xlsx === false) {
     `sub_province` VARCHAR(255) DEFAULT 'Unkown',
     `amount_of_extra_columns` INTEGER DEFAULT 11"; //If adding an extra columns to this command, make sure to update this amount, used later
 
-  $sqlCreate = rtrim($sqlCreate, ',') . ");";
-  if ($conn->query($sqlCreate) === TRUE) {
-    echo "\nTable fossil created successfully\n";
-  } else {
-    echo "\nError creating fossil table: " . $conn->error . "\n";
-    return;
-  }
+    $sqlCreate = rtrim($sqlCreate, ',') . ");";
+    if ($conn->query($sqlCreate) === true) {
+        echo "\nTable fossil created successfully\n";
+    } else {
+        echo "\nError creating fossil table: " . $conn->error . "\n";
+        return;
+    }
 
-  $sqlCreate = "CREATE TABLE countries (
+    $sqlCreate = "CREATE TABLE countries (
     country_id INT AUTO_INCREMENT PRIMARY KEY,
     country_name VARCHAR(255) UNIQUE NOT NULL,
     geojson TEXT NOT NULL
   );";
 
-  if ($conn->query($sqlCreate) === TRUE) {
-    echo "\nTable countries created successfully\n";
-  } else {
-    echo "\nError creating countries table: " . $conn->error . "\n";
-    return;
-  }
+    if ($conn->query($sqlCreate) === true) {
+        echo "\nTable countries created successfully\n";
+    } else {
+        echo "\nError creating countries table: " . $conn->error . "\n";
+        return;
+    }
 
-  $sqlCreate = "CREATE TABLE regions (
+    $sqlCreate = "CREATE TABLE regions (
     region_id INT AUTO_INCREMENT PRIMARY KEY,
     region_name VARCHAR(255) UNIQUE NOT NULL
   );";
 
-  if ($conn->query($sqlCreate) === TRUE) {
-    echo "\nTable regions created successfully\n";
-  } else {
-    echo "\nError creating regions table: " . $conn->error . "\n";
-    return;
-  }
+    if ($conn->query($sqlCreate) === true) {
+        echo "\nTable regions created successfully\n";
+    } else {
+        echo "\nError creating regions table: " . $conn->error . "\n";
+        return;
+    }
 
-  $sqlCreate = "CREATE TABLE country_region (
+    $sqlCreate = "CREATE TABLE country_region (
     country_id INT,
     region_id INT,
     PRIMARY KEY (country_id, region_id),
@@ -153,11 +154,11 @@ if ($xlsx === false) {
     FOREIGN KEY (region_id) REFERENCES regions(region_id) ON DELETE CASCADE
   );";
 
-  if ($conn->query($sqlCreate) === TRUE) {
-    echo "\nTable country_region created successfully\n";
-  } else {
-    echo "\nError creating country_region table: " . $conn->error . "\n";
-    return;
-  }
+    if ($conn->query($sqlCreate) === true) {
+        echo "\nTable country_region created successfully\n";
+    } else {
+        echo "\nError creating country_region table: " . $conn->error . "\n";
+        return;
+    }
 
-}?>
+}

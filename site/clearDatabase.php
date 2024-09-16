@@ -14,7 +14,7 @@
 <body>
   <?php
     session_start();
-    include_once("adminDash.php");
+  include_once("adminDash.php");
   ?>
   <h2>Database Operations</h2>
   <br>
@@ -31,25 +31,25 @@
 </html>
 
 <?php
-$auth = $_SESSION["loggedIn"]; 
-if ($_SERVER["REQUEST_METHOD"] == "POST" && $auth) {
-  include_once("SqlConnection.php");
-  if (isset($_POST['clearDatabase'])) {
-    $sqlClear = "DELETE FROM fossil";
-    if ($conn->query($sqlClear) !== TRUE) {
-      echo "<script>alert('Error clearing database: $conn->error');</script>";
-    } else {
-      echo "<script>alert('Database cleared!'); window.location.href = 'index.php';</script>";
-    }
-  }
+$auth = $_SESSION["loggedIn"];
+  if ($_SERVER["REQUEST_METHOD"] == "POST" && $auth) {
+      include_once("SqlConnection.php");
+      if (isset($_POST['clearDatabase'])) {
+          $sqlClear = "DELETE FROM fossil";
+          if ($conn->query($sqlClear) !== true) {
+              echo "<script>alert('Error clearing database: $conn->error');</script>";
+          } else {
+              echo "<script>alert('Database cleared!'); window.location.href = 'index.php';</script>";
+          }
+      }
 
-  if (isset($_POST['dropTable'])) {
-    $sqlDrop = "DROP TABLE fossil";
-    if ($conn->query($sqlDrop) !== TRUE) {
-      echo "<script>alert('Error dropping fossil table: $conn->error');</script>";
-    } else {
-      echo "<script>alert('Table dropped!'); window.location.href = 'index.php'</script>";
-    }
+      if (isset($_POST['dropTable'])) {
+          $sqlDrop = "DROP TABLE fossil";
+          if ($conn->query($sqlDrop) !== true) {
+              echo "<script>alert('Error dropping fossil table: $conn->error');</script>";
+          } else {
+              echo "<script>alert('Table dropped!'); window.location.href = 'index.php'</script>";
+          }
+      }
   }
-}
-?>
+  ?>

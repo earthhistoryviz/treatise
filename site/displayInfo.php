@@ -58,7 +58,7 @@
           <h2 class="card-title"><?php echo htmlspecialchars(urldecode($genera));?></h5>
           <?php
           displayImage("Fossil_Image", $genera);
-          if ($auth) { ?>
+      if ($auth) { ?>
             <form id="imageUploadForm" action="uploadImage.php" method="post" enctype="multipart/form-data">
             <input type="file" name="image" class="fileInput" id="fileInput<?php echo $uniqueId; ?>" accept="image/*" style="display: none;">
             <input type="hidden" name="genera" value="<?php echo htmlspecialchars($genera); ?>">
@@ -66,9 +66,9 @@
             <button type="button" onclick="document.getElementById('fileInput<?php echo $uniqueId; ?>').click();">Choose File</button>
             <button type="submit" class="btn btn-success">Upload Fossil Image</button>
             </form> <?php
-          }
-          if ($auth) {
-            $uniqueId = htmlspecialchars($key); ?>
+      }
+      if ($auth) {
+          $uniqueId = htmlspecialchars($key); ?>
             <form id="formImageUpload<?php echo $uniqueId; ?>" action="uploadImage.php" method="post" enctype="multipart/form-data">
               <input type="file" name="image" class="fileInput" id="fileInput<?php echo $uniqueId; ?>" accept="image/*" style="display: none;">
               <input type="hidden" name="genera" value="<?php echo htmlspecialchars($genera); ?>">
@@ -77,7 +77,7 @@
               <button type="button" onclick="document.getElementById('fileInput<?php echo $uniqueId; ?>').click();">Choose File</button>
               <button type="submit" class="btn btn-success">Upload <?= $replaced_key ?> Image</button>
             </form> <?php
-          } ?>
+      } ?>
           <div class="card-body">
             <h2 class="small-header">Classification</h2>
             <div id="Phylum" class="horiz" style="text-align: left;">
@@ -234,34 +234,36 @@
           </div>
         </div>
       </div>
-    </div> <?php 
+    </div> <?php
   } ?>
 </div> 
 <?php
 
-function eliminateParagraphs($str) {
-  while (preg_match("/<p>.*<\/p>/", $str)) {
-    $str = preg_replace("/<p>(.*)<\/p>/", "\\1", $str);
-  }
-  return $str;
+function eliminateParagraphs($str)
+{
+    while (preg_match("/<p>.*<\/p>/", $str)) {
+        $str = preg_replace("/<p>(.*)<\/p>/", "\\1", $str);
+    }
+    return $str;
 }
 
-  function displayImage($type, $genera) {
-  $directoryPath = "/app/uploads/$genera/$type";
-  $imagePattern = $directoryPath . "/*.{jpg,png,gif}";
-  $images = glob($imagePattern, GLOB_BRACE);
-  if (!empty($images)) {
-    echo '<br>';
-    foreach ($images as $imagePath) {
-      $imageName = basename($imagePath);
-      $imageUrl = "./uploads/" . htmlspecialchars($genera) . '/' . htmlspecialchars($type) . '/' . htmlspecialchars($imageName);
-      echo '<a href="' . $imageUrl . '" target="_blank"><img style="max-width: 200px; max-height: 200px;" src="' . $imageUrl . '" alt="Fossil Image"></a>';
-    }
-  }
+  function displayImage($type, $genera)
+  {
+      $directoryPath = "/app/uploads/$genera/$type";
+      $imagePattern = $directoryPath . "/*.{jpg,png,gif}";
+      $images = glob($imagePattern, GLOB_BRACE);
+      if (!empty($images)) {
+          echo '<br>';
+          foreach ($images as $imagePath) {
+              $imageName = basename($imagePath);
+              $imageUrl = "./uploads/" . htmlspecialchars($genera) . '/' . htmlspecialchars($type) . '/' . htmlspecialchars($imageName);
+              echo '<a href="' . $imageUrl . '" target="_blank"><img style="max-width: 200px; max-height: 200px;" src="' . $imageUrl . '" alt="Fossil Image"></a>';
+          }
+      }
   }
 
 
-  
+
   if ($auth && $fossilData) { ?>
     <script>
       document.addEventListener('DOMContentLoaded', function() {
@@ -353,7 +355,7 @@ function eliminateParagraphs($str) {
           }
         });
       });
-    </script> <?php 
+    </script> <?php
   } ?>
 </body>
 </html>

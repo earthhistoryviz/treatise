@@ -1,43 +1,35 @@
-<?php 
-include_once("navBar.php"); 
+<?php
+include_once("navBar.php");
 include_once("TimescaleLib.php");
-include_once("SqlConnection.php"); 
+include_once("SqlConnection.php");
 $stages = parseTimescale("./uploads/MasterChronostrat_StageLookupTable_2020.xlsx");
 $periods = [];
 foreach ($stages as $stage) {
-	$period = $stage['period'];
-	$stageName = $stage['stage'];
-	$base = round($stage['base'], 2);
-	$top = round($stage['top'], 2);
-	if (!isset($periods[$period])) {
-		$periods[$period] = [
-			"stages" => [],
-			"begDate" => PHP_INT_MIN,
-			"endDate" => PHP_INT_MAX,
-			"date_range" => ""
-		];
-	}
-	$periods[$period]["stages"][$stageName] = [
-		"base" => $base,
-		"top" => $top,
-		"date_range" => " ({$base}-{$top})"
-	];
+    $period = $stage['period'];
+    $stageName = $stage['stage'];
+    $base = round($stage['base'], 2);
+    $top = round($stage['top'], 2);
+    if (!isset($periods[$period])) {
+        $periods[$period] = [
+            "stages" => [],
+            "begDate" => PHP_INT_MIN,
+            "endDate" => PHP_INT_MAX,
+            "date_range" => ""
+        ];
+    }
+    $periods[$period]["stages"][$stageName] = [
+        "base" => $base,
+        "top" => $top,
+        "date_range" => " ({$base}-{$top})"
+    ];
 
-	if ($base > $periods[$period]["begDate"]) {
-		$periods[$period]["begDate"] = $base;
-	}
-	if ($top < $periods[$period]["endDate"]) {
-		$periods[$period]["endDate"] = $top;
-	}
-	$periods[$period]["date_range"] = " (" . round($periods[$period]["begDate"], 2) . "-" . round($periods[$period]["endDate"], 2) . ")";
-}
-$allClasses = [];
-$allOrders = [];
-// Fetch distinct classes
-$sqlClasses = "SELECT DISTINCT Class FROM fossil";
-$resultClasses = $conn->query($sqlClasses);
-while ($row = $resultClasses->fetch_assoc()) {
-    $allClasses[] = $row["Class"];
+    if ($base > $periods[$period]["begDate"]) {
+        $periods[$period]["begDate"] = $base;
+    }
+    if ($top < $periods[$period]["endDate"]) {
+        $periods[$period]["endDate"] = $top;
+    }
+    $periods[$period]["date_range"] = " (" . round($periods[$period]["begDate"], 2) . "-" . round($periods[$period]["endDate"], 2) . ")";
 }
 
 $classesWithOrders = [];
@@ -68,7 +60,9 @@ while ($row = $resultClassesOrders->fetch_assoc()) {
 						class="form-control mb-2 mr-sm-2"
 						name="search"
 						placeholder="Search Genus Name..."
-						value="<?php if (isset($_GET['search'])) echo $_GET['search']; ?>">
+						value="<?php if (isset($_GET['search'])) {
+						    echo $_GET['search'];
+						} ?>">
 
 					<button id="submitbtn" value="filter" type="submit" class="btn btn-primary mb-2">Submit</button>
 				</div>
@@ -94,14 +88,14 @@ while ($row = $resultClassesOrders->fetch_assoc()) {
 							<!-- The logic makes it so that if no option picked, or if all is chosen(looking at URL via $_GET), no filtering is done
 							Otherwise the next set of lines after starts filtering everything except selected classtype -->
 							<option value="All" <?php echo (!isset($_GET['classSearch']) || $_GET['classSearch'] == 'All') ? 'selected' : ''; ?>>All</option>
-							<?php 
-							if (isset($allClasses)) {
-								foreach ($allClasses as $class) {
-									$selected = (isset($_GET['classSearch']) && $_GET['classSearch'] == $class) ? 'selected' : '';
-									echo "<option value='$class' $selected>$class</option>";
-								}
-							}
-							?>
+							<?php
+						    if (isset($classesWithOrders)) {
+						        foreach ($classesWithOrders as $class => $orders) {
+						            $selected = (isset($_GET['classSearch']) && $_GET['classSearch'] == $class) ? 'selected' : '';
+						            echo "<option value='$class' $selected>$class</option>";
+						        }
+						    }
+?>
 						</select>
 					</div>
 
@@ -118,20 +112,20 @@ while ($row = $resultClassesOrders->fetch_assoc()) {
 								orderSearch.innerHTML = "<option value='All'>All</option>";
 							} else {
 								orderSearch.disabled = false;
-								<?php 
-								if (isset($classesWithOrders)) {
-									$selectedAll = (isset($_GET['orderSearch']) && $_GET['orderSearch'] == 'All') ? 'selected' : '';
-    								echo "orderSearch.innerHTML = \"<option value='All' $selectedAll>All</option>\";";
-									foreach ($classesWithOrders as $class => $orders) {
-										echo "if (chosen == '$class') {";
-										foreach ($orders as $order) {
-											$selected = (isset($_GET['orderSearch']) && $_GET['orderSearch'] == $order) ? 'selected' : '';
-											echo "orderSearch.innerHTML += \"<option value='$order' $selected>$order</option>\";";
-										}
-										echo "}";
-									}
-								}
-								?>
+								<?php
+    if (isset($classesWithOrders)) {
+        $selectedAll = (isset($_GET['orderSearch']) && $_GET['orderSearch'] == 'All') ? 'selected' : '';
+        echo "orderSearch.innerHTML = \"<option value='All' $selectedAll>All</option>\";";
+        foreach ($classesWithOrders as $class => $orders) {
+            echo "if (chosen == '$class') {";
+            foreach ($orders as $order) {
+                $selected = (isset($_GET['orderSearch']) && $_GET['orderSearch'] == $order) ? 'selected' : '';
+                echo "orderSearch.innerHTML += \"<option value='$order' $selected>$order</option>\";";
+            }
+            echo "}";
+        }
+    }
+?>
 							}
 						}
 					</script>
@@ -172,13 +166,19 @@ while ($row = $resultClassesOrders->fetch_assoc()) {
 			var searchForm = document.getElementById("selected-filter");
 			if (chosen == "Date Range") {
 				var rangeHTML = 
-				"Beginning Date: <input id='begDate' type='number' step='0.01' style='width: 90px' class='form-control' name='agefilterstart' min='0' value='<?php if (isset($_GET['agefilterstart'])) echo $_GET['agefilterstart']; ?>'> \
-				Ending Date: <input id='endDate' type='number' style='width: 90px' class='form-control' name='agefilterend' min='0' value='<?php if (isset($_GET['agefilterend'])) echo $_GET['agefilterend']; ?>'> \
+				"Beginning Date: <input id='begDate' type='number' step='0.01' style='width: 90px' class='form-control' name='agefilterstart' min='0' value='<?php if (isset($_GET['agefilterstart'])) {
+				    echo $_GET['agefilterstart'];
+				} ?>'> \
+				Ending Date: <input id='endDate' type='number' style='width: 90px' class='form-control' name='agefilterend' min='0' value='<?php if (isset($_GET['agefilterend'])) {
+				    echo $_GET['agefilterend'];
+				} ?>'> \
 				<input id='selectPeriod' name='filterperiod' type='hidden' value='All'>";
 				searchForm.innerHTML = rangeHTML;
 			} else if (chosen == "Date") {
 				var dateHTML = 
-				"Enter Date: <input id='begDate' type='number' step='0.01' class='form-control' style='width: 90px' name='agefilterstart' min='0' value='<?php if (isset($_GET['agefilterstart'])) echo $_GET['agefilterstart']; ?>'> \
+				"Enter Date: <input id='begDate' type='number' step='0.01' class='form-control' style='width: 90px' name='agefilterstart' min='0' value='<?php if (isset($_GET['agefilterstart'])) {
+				    echo $_GET['agefilterstart'];
+				} ?>'> \
 				<input id='selectPeriod' name='filterperiod' type='hidden' value='All'>";
 				searchForm.innerHTML = dateHTML;
 			} else {
@@ -187,11 +187,11 @@ while ($row = $resultClassesOrders->fetch_assoc()) {
 					<select id='selectPeriod' name='filterperiod' class="form-select" onchange='changePeriod()'>
 						<option value='All' <?php echo (isset($_REQUEST['filterperiod']) && $_REQUEST['filterperiod'] == 'All') ? 'selected' : ''; ?>>All</option>
 					<?php
-					foreach ($periods as $p => $d) {
-						if ($p) { ?>
-							<option value='<?=$p?>' <?php echo (isset($_REQUEST['filterperiod']) && $_REQUEST['filterperiod'] == $p) ? 'selected' : ''; ?>><?=$p?> <?=$d["date_range"]?></option> <?php 
-						} 
-					} ?>
+				    foreach ($periods as $p => $d) {
+				        if ($p) { ?>
+							<option value='<?=$p?>' <?php echo (isset($_REQUEST['filterperiod']) && $_REQUEST['filterperiod'] == $p) ? 'selected' : ''; ?>><?=$p?> <?=$d["date_range"]?></option> <?php
+				        }
+				    } ?>
 					</select>
 					<h6 style="white-space: nowrap;" class="m-0">and Stage</h6>
 					<select id='filterstage' name='filterstage' disabled class="form-select" onchange=stageToDate()>

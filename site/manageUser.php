@@ -18,20 +18,20 @@
     </tr>
     <?php
       include_once("SqlConnection.php");
-      $sql = "SELECT * FROM user_info ";
-      $result = mysqli_query($conn, $sql);
-      while($row = mysqli_fetch_array($result)) {
-        $user = $row['uname'];
-        $adm = $row['admin'];
-        echo "<tr>";
-        echo"               ";
-        echo "<td>" . $user ."</td>";
-        echo "               ";
-        echo "<td>" . $adm . "</td>";
-        echo "</tr>";
+  $sql = "SELECT * FROM user_info ";
+  $result = mysqli_query($conn, $sql);
+  while($row = mysqli_fetch_array($result)) {
+      $user = $row['uname'];
+      $adm = $row['admin'];
+      echo "<tr>";
+      echo"               ";
+      echo "<td>" . $user ."</td>";
+      echo "               ";
+      echo "<td>" . $adm . "</td>";
+      echo "</tr>";
 
-      }
-    ?>
+  }
+  ?>
   </table>
   <button onclick = "window.location.href = '/Signup.php'">Add a user </button>
 </body>

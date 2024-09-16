@@ -3,37 +3,37 @@ include_once("SqlConnection.php");
 ?>
 <?php
 if (isset($_REQUEST['submit_btn'])) {
-  $uname  = $_REQUEST['username'];
-  $pass   = $_REQUEST['password'];
-  //$salt = "SALT";
-  //$pashash = password_hash($pass,PASSWORD_DEFAULT);
-  //$chkpass = $pashash.$salt;
-  $sql = "SELECT uname,pasw from user_info";
-  $result = mysqli_query($conn, $sql);
-  echo '<script type = "text/javascript">alert("Login Successful"</script>';
-  if (mysqli_num_rows($result) > 0) {
-    while ($row = $result->fetch_assoc()) {
-      $hsh   = $row['pasw'];
-      $uname = $row['uname'];
-      //echo $uname.$hsh;
-      if (password_verify($pass, $hsh)) {
-        //  echo"I was here";
-        echo '<script type = "text/javascript">alert("Login Successful)"</script>';
-        session_start();
-        $_SESSION['loggedIn'] = True;
-        $_SESSION['username'] = $uname;
-				$redirectUrl = $_POST['redirect'];
-				header('Location: index.php');
-				exit;
-      } else {
-        //echo"no match";
-      }
+    $uname  = $_REQUEST['username'];
+    $pass   = $_REQUEST['password'];
+    //$salt = "SALT";
+    //$pashash = password_hash($pass,PASSWORD_DEFAULT);
+    //$chkpass = $pashash.$salt;
+    $sql = "SELECT uname,pasw from user_info";
+    $result = mysqli_query($conn, $sql);
+    echo '<script type = "text/javascript">alert("Login Successful"</script>';
+    if (mysqli_num_rows($result) > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $hsh   = $row['pasw'];
+            $uname = $row['uname'];
+            //echo $uname.$hsh;
+            if (password_verify($pass, $hsh)) {
+                //  echo"I was here";
+                echo '<script type = "text/javascript">alert("Login Successful)"</script>';
+                session_start();
+                $_SESSION['loggedIn'] = true;
+                $_SESSION['username'] = $uname;
+                $redirectUrl = $_POST['redirect'];
+                header('Location: index.php');
+                exit;
+            } else {
+                //echo"no match";
+            }
+        }
+        echo "Incorrect Username or Password";
+        echo '<script type = "text/javascript">alert("Incorrect Username or Password"</script>';
+    } else {
+        echo "Database empty or does not exist";
     }
-    echo "Incorrect Username or Password";
-    echo '<script type = "text/javascript">alert("Incorrect Username or Password"</script>';
-  } else {
-    echo "Database empty or does not exist";
-  }
 }
 ?>
 <html>
