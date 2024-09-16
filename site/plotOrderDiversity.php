@@ -48,20 +48,19 @@
         </div>
     </form>
     </div>
+
     <?php
     if (!empty($selectedOrders)) {
         if (in_array('All', $selectedOrders)) {
             $selectedOrders = $allOrders;
         }
 
-        // for each order in selected orders,fetch the fossils along with their
-        $site_name = $_SERVER['HTTP_HOST'];
         // Initialize variables to store the time range and counts
         $min_date = PHP_INT_MAX;
         $max_date = PHP_INT_MIN;
         $counts = [];
         foreach ($selectedOrders as $currentOrder) {
-            $apiUrl = "https://{$site_name}.treatise.geolex.org/searchAPI.php?orderfilter=" . urlencode($currentOrder);
+            $apiUrl = "https://{$_SERVER['HTTP_HOST']}.treatise.geolex.org/searchAPI.php?orderfilter=" . urlencode($currentOrder);
             $response = file_get_contents($apiUrl);
 
             $data = json_decode($response, true); // Decode the JSON response into an associative array
@@ -113,7 +112,21 @@
                     }
                 }
             }
-        } // end for each
+        }
+
+        ksort($counts);
+
+        // Always calculate total Genus data
+        foreach ($counts as $time => $orders) {
+            foreach ($orders as $order => $values) {
+                if (!isset($counts[$time]['All-Selections'])) {
+                    $counts[$time]['All-Selections'] = ['Total' => 0, 'New' => 0, 'Extinct' => 0];
+                }
+                $counts[$time]['All-Selections']['Total'] += $values['Total'];
+                $counts[$time]['All-Selections']['New'] += $values['New'];
+                $counts[$time]['All-Selections']['Extinct'] += $values['Extinct'];
+            }
+        }
 
         // Format the counts into the desired JSON object
         $jsonOutput = ['TimeBlocks' => []];
@@ -129,16 +142,150 @@
             }
             $jsonOutput['TimeBlocks'][] = $blockData;
         }
-        /*
-        Json object format:
-        Timeblocks is every 5 million years
-        TimeBlocks : [Order1{Total, New, Extinct}, Order2{Total, New, Extinct}, Order3{Total, New, Extinct}]
-        */
-        // Output the JSON object
-        header('Content-Type: application/json');
-        echo json_encode($jsonOutput, JSON_PRETTY_PRINT);
+        ?>
+    
+    <!-- Divs for Plotly Charts -->
+    <div id="plot-total" class="mb-5 w-75"></div>
+    <div id="plot-new" class="mb-5 w-75"></div>
+    <div id="plot-extinct" class="mb-5 w-75"></div>
 
-    } // end if
+    <script>
+        const data = <?php echo json_encode($jsonOutput, JSON_PRETTY_PRINT); ?>;
+        const timeBins = data.TimeBlocks.map(block => block.TimeBlock);
+
+        const totalTraces = [];
+        const newTraces = [];
+        const extinctTraces = [];
+
+        data.TimeBlocks.forEach(block => {
+            block.Orders.forEach(orderData => {
+                const orderName = orderData.Order;
+                // For Total Genera Plot
+                let traceTotal = totalTraces.find(trace => trace.name === orderName);
+                if (!traceTotal) {
+                    traceTotal = {
+                    x: [],
+                    y: [],
+                    mode: 'lines',
+                    name: orderName,
+                    // fill: 'tonexty',
+                    };
+                    totalTraces.push(traceTotal);
+                }
+                traceTotal.x.push(block.TimeBlock);
+                traceTotal.y.push(orderData.Total);
+
+                // For New Genera Plot
+                let traceNew = newTraces.find(trace => trace.name === orderName);
+                if (!traceNew) {
+                    traceNew = {
+                    x: [],
+                    y: [],
+                    mode: 'lines',
+                    name: orderName,
+                    // fill: 'tonexty',
+                    };
+                    newTraces.push(traceNew);
+                }
+                traceNew.x.push(block.TimeBlock);
+                traceNew.y.push(orderData.New);
+
+                // For Extinct Genera Plot
+                let traceExtinct = extinctTraces.find(trace => trace.name === orderName);
+                if (!traceExtinct) {
+                    traceExtinct = {
+                    x: [],
+                    y: [],
+                    mode: 'lines',
+                    name: orderName,
+                    // fill: 'tonexty',
+                    };
+                    extinctTraces.push(traceExtinct);
+                }
+                traceExtinct.x.push(block.TimeBlock);
+                traceExtinct.y.push(orderData.Extinct);
+            });
+        });
+
+        const stage_ranges = {
+            'Cambrian': [[541, 485.37], [153/255, 181/255, 117/255]],
+            'Ordovician': [[485.37, 443.83], [51/255, 169/255, 126/255]],
+            'Silurian': [[443.83, 419.2], [166/255, 220/255, 181/255]],
+            'Devonian': [[419.2, 358.94], [229/255, 183/255, 90/255]],
+            'Carboniferous': [[358.94, 298.88], [140/255, 176/255, 108/255]],
+            'Permian': [[298.88, 251.9], [227/255, 99/255, 80/255]],
+            'Triassic': [[251.9, 201.36], [164/255, 70/255, 159/255]],
+            'Jurassic': [[201.36, 145.73], [78/255, 179/255, 211/255]],
+            'Cretaceous': [[145.73, 66.04], [140/255, 205/255, 96/255]],
+            'Paleogene': [[66.04, 23.04], [253/255, 108/255, 98/255]],
+            'Neogene': [[23.04, 2.58], [255/255, 255/255, 51/255]],
+            'Quaternary': [[2.58, -50], [255/255, 237/255, 179/255]]
+        };
+
+        const shapes = Object.keys(stage_ranges).map(stage => {
+            const [range, color] = stage_ranges[stage];
+            return {
+                type: 'rect',
+                xref: 'x',
+                yref: 'y',
+                x0: range[0],
+                x1: range[1],
+                y0: 0,
+                y1: -1,
+                fillcolor: `rgba(${color[0] * 255}, ${color[1] * 255}, ${color[2] * 255}, 0.5)`,
+                line: { width: 0 }
+            };
+        });
+
+        const annotations = Object.keys(stage_ranges).map(stage => {
+            const [range] = stage_ranges[stage];
+            return {
+                xref: 'x',
+                yref: 'y',
+                x: (range[0] + range[1]) / 2,
+                y: -0.5,
+                text: stage,
+                showarrow: false,
+                font: {
+                    size: stage === "Neogene" ? 10 : 12,
+                    color: 'black'
+                },
+                align: 'center'
+            };
+        });
+
+        // Plotting Total Genera
+        Plotly.newPlot('plot-total', totalTraces, {
+            title: 'Total Genera Over Time',
+            xaxis: { title: 'Time (Million Years Ago)', autorange: 'reversed' },
+            yaxis: { title: 'Number of Genera'},
+            height: 800,
+            shapes: shapes,
+            annotations: annotations
+        });
+
+        // Plotting New Genera
+        Plotly.newPlot('plot-new', newTraces, {
+            title: 'New Genera Over Time',
+            xaxis: { title: 'Time (Million Years Ago)', autorange: 'reversed' },
+            yaxis: { title: 'Number of New Genera' },
+            height: 800,
+            shapes: shapes,
+            annotations: annotations
+        });
+
+        // Plotting Extinct Genera
+        Plotly.newPlot('plot-extinct', extinctTraces, {
+            title: 'Extinct Genera Over Time',
+            xaxis: { title: 'Time (Million Years Ago)', autorange: 'reversed' },
+            yaxis: { title: 'Number of Extinct Genera' },
+            height: 800,
+            shapes: shapes,
+            annotations: annotations
+        });
+    </script>
+    <?php
+    } // End if for selected orders
     ?>
 
   </div> 
