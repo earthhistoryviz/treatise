@@ -19,17 +19,17 @@
 
     $selectedGroupingName = "Class";
 
-    // Fetching family from database
-    $allFamilies = [];
-    $sqlFamily = "SELECT DISTINCT FAMILY FROM fossil";
-    $resultFamily = $conn->query($sqlFamily);
-    while ($row = $resultFamily->fetch_assoc()) {
-        $allFamilies[] = $row["FAMILY"];
+    // Fetching class from database
+    $allClasses = [];
+    $sqlClass = "SELECT DISTINCT CLASS FROM fossil";
+    $resultClass = $conn->query($sqlClass);
+    while ($row = $resultClass->fetch_assoc()) {
+        $allClasses[] = $row["CLASS"];
     }
     $conn->close();
 
-    // Get selected family from the form submission
-    $selectedFamilies = isset($_GET['families']) ? $_GET['families'] : [];
+    // Get selected class from the form submission
+    $selectedClasses = isset($_GET['class']) ? $_GET['class'] : [];
     ?>
 
     <div class="container mt-5">
@@ -37,11 +37,11 @@
       <form method="GET">
         <div class="d-flex flex-column justify-content-center align-items-center">
             <div class="mb-3 mt-3 d-flex flex-row align-items-center justify-content-center gap-3">
-                <label for="familySelect" class="form-label">Select Fossil Families:</label>
-                <select class="form-select" id="familySelect" name="families[]" multiple size="6" style="width: 200px;">
-                    <option value="All" <?php echo in_array("All", $selectedFamilies) ? 'selected' : ''; ?>>All</option>
-                    <?php foreach ($allFamilies as $family): ?>
-                        <option value="<?php echo htmlspecialchars($family); ?>" <?php echo in_array($family, $selectedFamilies) ? 'selected' : ''; ?>><?php echo htmlspecialchars($family); ?></option>
+                <label for="classSelect" class="form-label">Select Fossil Classes:</label>
+                <select class="form-select" id="classSelect" name="class[]" multiple size="6" style="width: 200px;">
+                    <option value="All" <?php echo in_array("All", $selectedClasses) ? 'selected' : ''; ?>>All</option>
+                    <?php foreach ($allClasses as $class): ?>
+                        <option value="<?php echo htmlspecialchars($class); ?>" <?php echo in_array($class, $selectedClasses) ? 'selected' : ''; ?>><?php echo htmlspecialchars($class); ?></option>
                     <?php endforeach; ?>
                 </select>
                 <small class="form-text text-muted">Hold down the Ctrl (Windows) or Command (Mac) button to select multiple options.</small>
@@ -52,17 +52,17 @@
     </div>
 
     <?php
-    if (!empty($selectedFamilies)) {
-        if (in_array('All', $selectedFamilies)) {
-            $selectedFamilies = $allFamilies;
+    if (!empty($selectedClasses)) {
+        if (in_array('All', $selectedClasses)) {
+            $selectedClasses = $allClasses;
         }
 
         // Initialize variables to store the time range and counts
         $min_date = PHP_INT_MAX;
         $max_date = PHP_INT_MIN;
         $counts = [];
-        foreach ($selectedFamilies as $currentFamily) {
-            $apiUrl = "https://{$_SERVER['HTTP_HOST']}.treatise.geolex.org/searchAPI.php?familyfilter=" . urlencode($currentFamily);
+        foreach ($selectedClasses as $currentClass) {
+            $apiUrl = "https://{$_SERVER['HTTP_HOST']}.treatise.geolex.org/searchAPI.php?classfilter=" . urlencode($currentClass);
             $response = file_get_contents($apiUrl);
 
             $data = json_decode($response, true); // Decode the JSON response into an associative array
@@ -70,7 +70,7 @@
             // Process the data to determine min and max dates
             $processedData = [];
             foreach ($data as $entry) {
-                $family = $entry['Family'];
+                $class = $entry['Class'];
                 $genus = $entry['Genus'];
                 $beginning_date = (int)$entry['beginning_date'];
                 $ending_date = (int)$entry['ending_date'];
@@ -80,15 +80,15 @@
                 $max_date = max($max_date, $beginning_date);
 
                 $processedData[] = [
-                    'Family' => $family,
+                    'Class' => $class,
                     'Genus' => $genus,
                     'beginning_date' => $beginning_date,
                     'ending_date' => $ending_date
                 ];
             }
-            // Populate counts for each time block and family
+            // Populate counts for each time block and class
             foreach ($processedData as $entry) {
-                $family = $entry['Family'];
+                $class = $entry['Class'];
                 $beginning_date = $entry['beginning_date'];
                 $ending_date = $entry['ending_date'];
 
@@ -97,20 +97,20 @@
 
                 foreach ($timeBlocks as $time) {
                     // Initialize counts array if not already set
-                    if (!isset($counts[$time][$family])) {
-                        $counts[$time][$family] = ['Total' => 0, 'New' => 0, 'Extinct' => 0];
+                    if (!isset($counts[$time][$class])) {
+                        $counts[$time][$class] = ['Total' => 0, 'New' => 0, 'Extinct' => 0];
                     }
                     // Count Total Genera Active in the Time Block
                     if ($beginning_date >= $time && ($ending_date <= $time || $ending_date == 0)) {
-                        $counts[$time][$family]['Total']++;
+                        $counts[$time][$class]['Total']++;
                     }
                     // Count New Genera in the Time Block
                     if ($beginning_date >= $time && $beginning_date < $time + 5) {
-                        $counts[$time][$family]['New']++;
+                        $counts[$time][$class]['New']++;
                     }
                     // Count Extinct Genera in the Time Block
                     if ($ending_date > 0 && $ending_date >= $time && $ending_date < $time + 5) {
-                        $counts[$time][$family]['Extinct']++;
+                        $counts[$time][$class]['Extinct']++;
                     }
                 }
             }
@@ -119,24 +119,25 @@
         ksort($counts);
 
         // Always calculate total Genus data
-        foreach ($counts as $time => $families) {
-            foreach ($families as $family => $values) {
-                if (!isset($counts[$time]['All-Selections'])) {
-                    $counts[$time]['All-Selections'] = ['Total' => 0, 'New' => 0, 'Extinct' => 0];
+        if (count($selectedClasses) > 1) {
+            foreach ($counts as $time => $class) {
+                foreach ($class as $class => $values) {
+                    if (!isset($counts[$time]['All-Selections'])) {
+                        $counts[$time]['All-Selections'] = ['Total' => 0, 'New' => 0, 'Extinct' => 0];
+                    }
+                    $counts[$time]['All-Selections']['Total'] += $values['Total'];
+                    $counts[$time]['All-Selections']['New'] += $values['New'];
+                    $counts[$time]['All-Selections']['Extinct'] += $values['Extinct'];
                 }
-                $counts[$time]['All-Selections']['Total'] += $values['Total'];
-                $counts[$time]['All-Selections']['New'] += $values['New'];
-                $counts[$time]['All-Selections']['Extinct'] += $values['Extinct'];
             }
         }
-
         // Format the counts into the desired JSON object
         $jsonOutput = ['TimeBlocks' => []];
-        foreach ($counts as $time => $families) {
-            $blockData = ['TimeBlock' => $time, 'Families' => []];
-            foreach ($families as $family => $values) {
-                $blockData['Families'][] = [
-                    'Family' => $family,
+        foreach ($counts as $time => $class) {
+            $blockData = ['TimeBlock' => $time, 'Classes' => []];
+            foreach ($class as $class => $values) {
+                $blockData['Classes'][] = [
+                    'Class' => $class,
                     'Total' => $values['Total'],
                     'New' => $values['New'],
                     'Extinct' => $values['Extinct']
@@ -160,52 +161,52 @@
         const extinctTraces = [];
 
         data.TimeBlocks.forEach(block => {
-            block.Families.forEach(familyData => {
-                const familyName = familyData.Family;
+            block.Classes.forEach(classData => {
+                const className = classData.Class;
                 // For Total Genera Plot
-                let traceTotal = totalTraces.find(trace => trace.name === familyName);
+                let traceTotal = totalTraces.find(trace => trace.name === className);
                 if (!traceTotal) {
                     traceTotal = {
                     x: [],
                     y: [],
                     mode: 'lines',
-                    name: familyName,
+                    name: className,
                     // fill: 'tonexty',
                     };
                     totalTraces.push(traceTotal);
                 }
                 traceTotal.x.push(block.TimeBlock);
-                traceTotal.y.push(familyData.Total);
+                traceTotal.y.push(classData.Total);
 
                 // For New Genera Plot
-                let traceNew = newTraces.find(trace => trace.name === familyName);
+                let traceNew = newTraces.find(trace => trace.name === className);
                 if (!traceNew) {
                     traceNew = {
                     x: [],
                     y: [],
                     mode: 'lines',
-                    name: familyName,
+                    name: className,
                     // fill: 'tonexty',
                     };
                     newTraces.push(traceNew);
                 }
                 traceNew.x.push(block.TimeBlock);
-                traceNew.y.push(familyData.New);
+                traceNew.y.push(classData.New);
 
                 // For Extinct Genera Plot
-                let traceExtinct = extinctTraces.find(trace => trace.name === familyName);
+                let traceExtinct = extinctTraces.find(trace => trace.name === className);
                 if (!traceExtinct) {
                     traceExtinct = {
                     x: [],
                     y: [],
                     mode: 'lines',
-                    name: familyName,
+                    name: className,
                     // fill: 'tonexty',
                     };
                     extinctTraces.push(traceExtinct);
                 }
                 traceExtinct.x.push(block.TimeBlock);
-                traceExtinct.y.push(familyData.Extinct);
+                traceExtinct.y.push(classData.Extinct);
             });
         });
 
@@ -320,7 +321,7 @@
         });
     </script>
     <?php
-    } // End if for selected families
+    } // End if for selected class
     ?>
 
   </div> 

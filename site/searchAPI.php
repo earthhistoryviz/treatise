@@ -4,7 +4,6 @@ include_once("SqlConnection.php");
 $searchquery = $_GET['searchquery'];
 $classfilter = $_GET['classfilter'];
 $orderfilter = $_GET['orderfilter'];
-$familyfilter = $_GET['familyfilter'];
 $geographyfilter = $_GET['geographyfilter'];
 $stagefilter = $_GET['stagefilter'];
 $agefilterstart = $_GET['agefilterstart'];
@@ -26,9 +25,6 @@ if (!$classfilter || $classfilter == "All") {
 }
 if (!$orderfilter || $orderfilter == "All") {
     $orderfilter = "";
-}
-if (!$familyfilter || $familyfilter == "All") {
-    $familyfilter = "";
 }
 
 $searchquery = '%' . $searchquery . '%';
@@ -56,12 +52,7 @@ if ($orderfilter == "%%") {
 } else {
     $sql .= " AND `Order` LIKE ?";
 }
-if ($familyfilter == "%%") {
-    $sql .= " AND (Family LIKE ? OR Family IS NULL)";
-} else {
-    $sql .= " AND Family LIKE ?";
-}
-$params = ["ssssss", &$searchquery, &$geographyfilter, &$stagefilter, &$classfilter, &$orderfilter, &$familyfilter];
+$params = ["sssss", &$searchquery, &$geographyfilter, &$stagefilter, &$classfilter, &$orderfilter];
 
 if ($agefilterstart != "") {
     $sql .= " AND NOT (beginning_date < ? OR ending_date > ?) "
