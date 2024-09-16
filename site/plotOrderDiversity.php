@@ -17,17 +17,19 @@
     include_once("navBar.php");
     include_once("SqlConnection.php");
 
-    // Fetching orders from database
-    $allOrders = [];
-    $sqlOrders = "SELECT DISTINCT `Order` FROM fossil";
-    $resultOrders = $conn->query($sqlOrders);
-    while ($row = $resultOrders->fetch_assoc()) {
-        $allOrders[] = $row["Order"];
+    $selectedGroupingName = "Class";
+
+    // Fetching family from database
+    $allFamilies = [];
+    $sqlFamily = "SELECT DISTINCT FAMILY FROM fossil";
+    $resultFamily = $conn->query($sqlFamily);
+    while ($row = $resultFamily->fetch_assoc()) {
+        $allFamilies[] = $row["FAMILY"];
     }
     $conn->close();
 
-    // Get selected orders from the form submission
-    $selectedOrders = isset($_GET['orders']) ? $_GET['orders'] : [];
+    // Get selected family from the form submission
+    $selectedFamilies = isset($_GET['families']) ? $_GET['families'] : [];
     ?>
 
     <div class="container mt-5">
@@ -35,11 +37,11 @@
       <form method="GET">
         <div class="d-flex flex-column justify-content-center align-items-center">
             <div class="mb-3 mt-3 d-flex flex-row align-items-center justify-content-center gap-3">
-                <label for="orderSelect" class="form-label">Select Fossil Orders:</label>
-                <select class="form-select" id="orderSelect" name="orders[]" multiple size="6" style="width: 200px;">
-                    <option value="All" <?php echo in_array("All", $selectedOrders) ? 'selected' : ''; ?>>All</option>
-                    <?php foreach ($allOrders as $order): ?>
-                        <option value="<?php echo htmlspecialchars($order); ?>" <?php echo in_array($order, $selectedOrders) ? 'selected' : ''; ?>><?php echo htmlspecialchars($order); ?></option>
+                <label for="familySelect" class="form-label">Select Fossil Families:</label>
+                <select class="form-select" id="familySelect" name="families[]" multiple size="6" style="width: 200px;">
+                    <option value="All" <?php echo in_array("All", $selectedFamilies) ? 'selected' : ''; ?>>All</option>
+                    <?php foreach ($allFamilies as $family): ?>
+                        <option value="<?php echo htmlspecialchars($family); ?>" <?php echo in_array($family, $selectedFamilies) ? 'selected' : ''; ?>><?php echo htmlspecialchars($family); ?></option>
                     <?php endforeach; ?>
                 </select>
                 <small class="form-text text-muted">Hold down the Ctrl (Windows) or Command (Mac) button to select multiple options.</small>
@@ -50,17 +52,17 @@
     </div>
 
     <?php
-    if (!empty($selectedOrders)) {
-        if (in_array('All', $selectedOrders)) {
-            $selectedOrders = $allOrders;
+    if (!empty($selectedFamilies)) {
+        if (in_array('All', $selectedFamilies)) {
+            $selectedFamilies = $allFamilies;
         }
 
         // Initialize variables to store the time range and counts
         $min_date = PHP_INT_MAX;
         $max_date = PHP_INT_MIN;
         $counts = [];
-        foreach ($selectedOrders as $currentOrder) {
-            $apiUrl = "https://{$_SERVER['HTTP_HOST']}.treatise.geolex.org/searchAPI.php?orderfilter=" . urlencode($currentOrder);
+        foreach ($selectedFamilies as $currentFamily) {
+            $apiUrl = "https://{$_SERVER['HTTP_HOST']}.treatise.geolex.org/searchAPI.php?familyfilter=" . urlencode($currentFamily);
             $response = file_get_contents($apiUrl);
 
             $data = json_decode($response, true); // Decode the JSON response into an associative array
@@ -68,7 +70,7 @@
             // Process the data to determine min and max dates
             $processedData = [];
             foreach ($data as $entry) {
-                $order = $entry['Order'];
+                $family = $entry['Family'];
                 $genus = $entry['Genus'];
                 $beginning_date = (int)$entry['beginning_date'];
                 $ending_date = (int)$entry['ending_date'];
@@ -78,15 +80,15 @@
                 $max_date = max($max_date, $beginning_date);
 
                 $processedData[] = [
-                    'Order' => $order,
+                    'Family' => $family,
                     'Genus' => $genus,
                     'beginning_date' => $beginning_date,
                     'ending_date' => $ending_date
                 ];
             }
-            // Populate counts for each time block and order
+            // Populate counts for each time block and family
             foreach ($processedData as $entry) {
-                $order = $entry['Order'];
+                $family = $entry['Family'];
                 $beginning_date = $entry['beginning_date'];
                 $ending_date = $entry['ending_date'];
 
@@ -95,20 +97,20 @@
 
                 foreach ($timeBlocks as $time) {
                     // Initialize counts array if not already set
-                    if (!isset($counts[$time][$order])) {
-                        $counts[$time][$order] = ['Total' => 0, 'New' => 0, 'Extinct' => 0];
+                    if (!isset($counts[$time][$family])) {
+                        $counts[$time][$family] = ['Total' => 0, 'New' => 0, 'Extinct' => 0];
                     }
                     // Count Total Genera Active in the Time Block
                     if ($beginning_date >= $time && ($ending_date <= $time || $ending_date == 0)) {
-                        $counts[$time][$order]['Total']++;
+                        $counts[$time][$family]['Total']++;
                     }
                     // Count New Genera in the Time Block
                     if ($beginning_date >= $time && $beginning_date < $time + 5) {
-                        $counts[$time][$order]['New']++;
+                        $counts[$time][$family]['New']++;
                     }
                     // Count Extinct Genera in the Time Block
                     if ($ending_date > 0 && $ending_date >= $time && $ending_date < $time + 5) {
-                        $counts[$time][$order]['Extinct']++;
+                        $counts[$time][$family]['Extinct']++;
                     }
                 }
             }
@@ -117,8 +119,8 @@
         ksort($counts);
 
         // Always calculate total Genus data
-        foreach ($counts as $time => $orders) {
-            foreach ($orders as $order => $values) {
+        foreach ($counts as $time => $families) {
+            foreach ($families as $family => $values) {
                 if (!isset($counts[$time]['All-Selections'])) {
                     $counts[$time]['All-Selections'] = ['Total' => 0, 'New' => 0, 'Extinct' => 0];
                 }
@@ -130,11 +132,11 @@
 
         // Format the counts into the desired JSON object
         $jsonOutput = ['TimeBlocks' => []];
-        foreach ($counts as $time => $orders) {
-            $blockData = ['TimeBlock' => $time, 'Orders' => []];
-            foreach ($orders as $order => $values) {
-                $blockData['Orders'][] = [
-                    'Order' => $order,
+        foreach ($counts as $time => $families) {
+            $blockData = ['TimeBlock' => $time, 'Families' => []];
+            foreach ($families as $family => $values) {
+                $blockData['Families'][] = [
+                    'Family' => $family,
                     'Total' => $values['Total'],
                     'New' => $values['New'],
                     'Extinct' => $values['Extinct']
@@ -158,52 +160,52 @@
         const extinctTraces = [];
 
         data.TimeBlocks.forEach(block => {
-            block.Orders.forEach(orderData => {
-                const orderName = orderData.Order;
+            block.Families.forEach(familyData => {
+                const familyName = familyData.Family;
                 // For Total Genera Plot
-                let traceTotal = totalTraces.find(trace => trace.name === orderName);
+                let traceTotal = totalTraces.find(trace => trace.name === familyName);
                 if (!traceTotal) {
                     traceTotal = {
                     x: [],
                     y: [],
                     mode: 'lines',
-                    name: orderName,
+                    name: familyName,
                     // fill: 'tonexty',
                     };
                     totalTraces.push(traceTotal);
                 }
                 traceTotal.x.push(block.TimeBlock);
-                traceTotal.y.push(orderData.Total);
+                traceTotal.y.push(familyData.Total);
 
                 // For New Genera Plot
-                let traceNew = newTraces.find(trace => trace.name === orderName);
+                let traceNew = newTraces.find(trace => trace.name === familyName);
                 if (!traceNew) {
                     traceNew = {
                     x: [],
                     y: [],
                     mode: 'lines',
-                    name: orderName,
+                    name: familyName,
                     // fill: 'tonexty',
                     };
                     newTraces.push(traceNew);
                 }
                 traceNew.x.push(block.TimeBlock);
-                traceNew.y.push(orderData.New);
+                traceNew.y.push(familyData.New);
 
                 // For Extinct Genera Plot
-                let traceExtinct = extinctTraces.find(trace => trace.name === orderName);
+                let traceExtinct = extinctTraces.find(trace => trace.name === familyName);
                 if (!traceExtinct) {
                     traceExtinct = {
                     x: [],
                     y: [],
                     mode: 'lines',
-                    name: orderName,
+                    name: familyName,
                     // fill: 'tonexty',
                     };
                     extinctTraces.push(traceExtinct);
                 }
                 traceExtinct.x.push(block.TimeBlock);
-                traceExtinct.y.push(orderData.Extinct);
+                traceExtinct.y.push(familyData.Extinct);
             });
         });
 
@@ -318,7 +320,7 @@
         });
     </script>
     <?php
-    } // End if for selected orders
+    } // End if for selected families
     ?>
 
   </div> 
