@@ -101,6 +101,21 @@ def plot_data(total_genera, new_genera, extinct_genera):
     figure_padding = 10
     
     stage_ranges = {
+        'Hadean': ((4600, 4000), (174/255, 2/255, 126/255)),
+        'Eoarchean': ((4000, 3600), (218/255, 3/255, 127/255)),
+        'Paleoarchean': ((3600, 3200), (244/255, 68/255, 159/255)),
+        'Mesoarchean': ((3200, 2800), (247/255, 104/255, 169/255)),
+        'Neoarchean': ((2800, 2500), (249/255, 155/255, 193/255)),
+        'Siderian': ((2500, 2300), (247/255, 79/255, 124/255)),
+        'Rhyacian': ((2300, 2050), (247/255, 91/255, 137/255)),
+        'Orosirian': ((2050, 1800), (247/255, 104/255, 152/255)),
+        'Statherian': ((1800, 1600), (248/255, 117/255, 167/255)),
+        'Calymmian': ((1600, 1400), (253/255, 192/255, 122/255)),
+        'Ectasian': ((1400, 1200), (253/255, 204/255, 138/255)),
+        'Stenian': ((1200, 1000), (254/255, 217/255, 154/255)),
+        'Tonian': ((1000, 720), (254/255, 191/255, 78/255)),
+        'Cryogenian': ((720, 635), (254/255, 204/255, 92/255)),
+        'Ediacaran': ((635, 538.8), (254/255, 217/255, 106/255)),
         'Cambrian': ((541, 485.37), (153/255, 181/255, 117/255)),
         'Ordovician': ((485.37, 443.83), (51/255, 169/255, 126/255)),
         'Silurian': ((443.83, 419.2), (166/255, 220/255, 181/255)),
@@ -117,6 +132,8 @@ def plot_data(total_genera, new_genera, extinct_genera):
     
     all_dates = pd.concat([total_genera['date'], new_genera['beginning_date'], extinct_genera['ending_date']])
     min_date, max_date = all_dates.min(), all_dates.max()
+    
+    stage_ranges = {stage: ((start, end), color) for stage, ((start, end), color) in stage_ranges.items() if start <= max_date and end >= min_date}
     
     # below will be used to scale that colored portion denoting time periods
     y_max = total_genera['total_genera'].max()
@@ -137,25 +154,6 @@ def plot_data(total_genera, new_genera, extinct_genera):
         text_x = start + width / 2
         ax1.text(text_x, stage_y_position + dynamic_height / 2, stage[0], ha='center', va='center', color='black', fontsize=12)
         # that weird formula for second argument is to make sure it is centered
-    
-    ax1.annotate('Late Devonian Extinction\nCause: Possibly due to global cooling', xy=(380, 450), xytext=(0, 20),
-                 textcoords='offset points', arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=-.1'),
-                 bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="b", lw=2))
-
-    ax1.annotate('Permian-Triassic Extinction\nCause: Possibly global warming', xy=(245, 250), xytext=(0, 50),
-                    textcoords='offset points', arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=-.5'),
-                    bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="b", lw=2))
-
-    ax1.annotate('Late Ordovician Extinction\nCause: Possibly global warming', xy=(440, 250), xytext=(-115, 50),
-                 textcoords='offset points', arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=-.5'),
-                 bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="b", lw=2))
-    ax1.annotate('End-Triassic Extinction\nCause: Possibly due to massive volcanism\nand associated climate change', xy=(201, 110), xytext=(-10, 50),
-                 textcoords='offset points', arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=.1'),
-                 bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="b", lw=2))
-
-    ax1.annotate('Cretaceous-Paleogene (K-Pg) Extinction\nCause: Asteroid impact and volcanic activity', xy=(60, 70), xytext=(-100, 140),
-                 textcoords='offset points', arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=-.1'),
-                 bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="b", lw=2))
     
     fig1.savefig('total_genera.png')
     

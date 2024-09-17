@@ -132,7 +132,7 @@
             }
         }
         // Format the counts into the desired JSON object
-        $jsonOutput = ['TimeBlocks' => []];
+        $jsonOutput = ['MinDate' => $min_date, 'MaxDate' => $max_date, 'TimeBlocks' => []];
         foreach ($counts as $time => $class) {
             $blockData = ['TimeBlock' => $time, 'Classes' => []];
             foreach ($class as $class => $values) {
@@ -211,6 +211,21 @@
         });
 
         const stage_ranges = {
+            'Hadean': [[4600, 4000], [174/255, 2/255, 126/255]],
+            'Eoarchean': [[4000, 3600], [218/255, 3/255, 127/255]],
+            'Paleoarchean': [[3600, 3200], [244/255, 68/255, 159/255]],
+            'Mesoarchean': [[3200, 2800], [247/255, 104/255, 169/255]],
+            'Neoarchean': [[2800, 2500], [249/255, 155/255, 193/255]],
+            'Siderian': [[2500, 2300], [247/255, 79/255, 124/255]],
+            'Rhyacian': [[2300, 2050], [247/255, 91/255, 137/255]],
+            'Orosirian': [[2050, 1800], [247/255, 104/255, 152/255]],
+            'Statherian': [[1800, 1600], [248/255, 117/255, 167/255]],
+            'Calymmian': [[1600, 1400], [253/255, 192/255, 122/255]],
+            'Ectasian': [[1400, 1200], [253/255, 204/255, 138/255]],
+            'Stenian': [[1200, 1000], [254/255, 217/255, 154/255]],
+            'Tonian': [[1000, 720], [254/255, 191/255, 78/255]],
+            'Cryogenian': [[720, 635], [254/255, 204/255, 92/255]],
+            'Ediacaran': [[635, 538.8], [254/255, 217/255, 106/255]],
             'Cambrian': [[541, 485.37], [153/255, 181/255, 117/255]],
             'Ordovician': [[485.37, 443.83], [51/255, 169/255, 126/255]],
             'Silurian': [[443.83, 419.2], [166/255, 220/255, 181/255]],
@@ -225,8 +240,17 @@
             'Quaternary': [[2.58, -41], [255/255, 237/255, 179/255]]
         };
 
-        const shapes = Object.keys(stage_ranges).map(stage => {
-            const [range, color] = stage_ranges[stage];
+        const maxDate = data.MaxDate;
+
+        const filteredStages = Object.fromEntries(
+            Object.entries(stage_ranges).filter(([stage, [[start, end]]]) => {
+                console.log(start, maxDate);
+                return end <= maxDate;
+            })
+        );
+
+        const shapes = Object.keys(filteredStages).map(stage => {
+            const [range, color] = filteredStages[stage];
             return {
                 type: 'rect',
                 xref: 'x',
@@ -240,8 +264,8 @@
             };
         });
 
-        const annotations = Object.keys(stage_ranges).map(stage => {
-            const [range] = stage_ranges[stage];
+        const annotations = Object.keys(filteredStages).map(stage => {
+            const [range] = filteredStages[stage];
             return {
                 xref: 'x',
                 yref: 'paper',
