@@ -133,7 +133,7 @@ def plot_data(total_genera, new_genera, extinct_genera):
     all_dates = pd.concat([total_genera['date'], new_genera['beginning_date'], extinct_genera['ending_date']])
     min_date, max_date = all_dates.min(), all_dates.max()
     
-    stage_ranges = {stage: ((start, end), color) for stage, ((start, end), color) in stage_ranges.items() if start <= max_date and end >= min_date}
+    stage_ranges = {stage: ((start, end), color) for stage, ((start, end), color) in stage_ranges.items() if end <= max_date}
     
     # below will be used to scale that colored portion denoting time periods
     y_max = total_genera['total_genera'].max()
