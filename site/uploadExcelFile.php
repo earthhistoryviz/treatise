@@ -24,7 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                 $rows = $xlsx->rows(0);
                 $first_row = array_filter(array_shift($rows)); //Get first row and filter out empty elements
                 $first_row = array_map(function ($item) { //Replace spaces with underscores
-                    return str_replace(' ', '_', $item);
+                    return str_replace(' ', '_', trim($item));
                 }, $first_row);
                 //$excelColumnNames and $conn from SqlConnection.php
                 include_once("SqlConnection.php");
@@ -92,38 +92,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                         echo "<br>Computed top age of <b>$genera</b> as $topDate.";
                         echo "<br>Found Last Occurrence <b>$endingStage</b> within International Stage as <b>$internationalTop</b>.";
                         // Use previous row values if no values are provided
-                        if ($escaped_row[0] == "NULL" || empty($escaped_row[0]) || str_starts_with($escaped_row[0], "'pg.") || str_starts_with($escaped_row[0], "'p.") || $escaped_row[0] == "' '") {
+                        $phylumIndex = $excelColumnNamesWithIndexes['Phylum'];
+                        if ($escaped_row[$phylumIndex] == "NULL" || empty($escaped_row[$phylumIndex]) || str_starts_with($escaped_row[$phylumIndex], "'pg.") || str_starts_with($escaped_row[$phylumIndex], "'p.") || $escaped_row[$phylumIndex] == "' '") {
                             echo "<br>No valid phylum provided, using previous value: $previousPhylum";
-                            $escaped_row[0] = $previousPhylum;
+                            $escaped_row[$phylumIndex] = $previousPhylum;
                         } else {
                             $previousPhylum = $escaped_row[0];
                         }
-                        if ($escaped_row[1] == "NULL" || empty($escaped_row[1]) || str_starts_with($escaped_row[1], "'pg.") || str_starts_with($escaped_row[1], "'p.")) {
+                        $classIndex = $excelColumnNamesWithIndexes['Class'];
+                        if ($escaped_row[$classIndex] == "NULL" || empty($escaped_row[$classIndex]) || str_starts_with($escaped_row[$classIndex], "'pg.") || str_starts_with($escaped_row[$classIndex], "'p.")) {
                             echo "<br>No valid class provided, using previous value: $previousClass";
-                            $escaped_row[1] = $previousClass;
+                            $escaped_row[$classIndex] = $previousClass;
                         } else {
-                            $previousClass = $escaped_row[1];
+                            $previousClass = $escaped_row[$classIndex];
                         }
-
-                        if ($escaped_row[2] == "NULL" || empty($escaped_row[2]) || str_starts_with($escaped_row[2], "'pg.") || str_starts_with($escaped_row[2], "'p.")) {
+                        $genusIndex = $excelColumnNamesWithIndexes['Genus'];
+                        if ($escaped_row[$genusIndex] == "NULL" || empty($escaped_row[$genusIndex]) || str_starts_with($escaped_row[$genusIndex], "'pg.") || str_starts_with($escaped_row[$genusIndex], "'p.")) {
                             echo "<br>No valid order provided, using previous value: $previousOrder";
-                            $escaped_row[2] = $previousOrder;
+                            $escaped_row[$genusIndex] = $previousOrder;
                         } else {
-                            $previousOrder = $escaped_row[2];
+                            $previousOrder = $escaped_row[$genusIndex];
                         }
-
-                        if ($escaped_row[3] == "NULL" || empty($escaped_row[3]) || str_starts_with($escaped_row[3], "'pg.") || str_starts_with($escaped_row[3], "'p.")) {
+                        $superFamilyIndex = $excelColumnNamesWithIndexes['Superfamily'];
+                        if ($escaped_row[$superFamilyIndex] == "NULL" || empty($escaped_row[$superFamilyIndex]) || str_starts_with($escaped_row[$superFamilyIndex], "'pg.") || str_starts_with($escaped_row[$superFamilyIndex], "'p.")) {
                             echo "<br>No valid superfamily provided, using previous value: $previousSuperfamily";
-                            $escaped_row[3] = $previousSuperfamily;
+                            $escaped_row[$superFamilyIndex] = $previousSuperfamily;
                         } else {
-                            $previousSuperfamily = $escaped_row[3];
+                            $previousSuperfamily = $escaped_row[$superFamilyIndex];
                         }
-
-                        if ($escaped_row[4] == "NULL" || empty($escaped_row[4]) || str_starts_with($escaped_row[4], "'pg.") || str_starts_with($escaped_row[4], "'p.")) {
+                        $familyIndex = $excelColumnNamesWithIndexes['Family'];
+                        if ($escaped_row[$familyIndex] == "NULL" || empty($escaped_row[$familyIndex]) || str_starts_with($escaped_row[$familyIndex], "'pg.") || str_starts_with($escaped_row[$familyIndex], "'p.")) {
                             echo "<br>No valid family provided, using previous value: $previousFamily";
-                            $escaped_row[4] = $previousFamily;
+                            $escaped_row[$familyIndex] = $previousFamily;
                         } else {
-                            $previousFamily = $escaped_row[4];
+                            $previousFamily = $escaped_row[$familyIndex];
                         }
                         // On DUPLICATE KEY UPDATE is needed in the case we're tring to update a row that already exists in the table
                         $sqlInsert = "INSERT INTO fossil (`" . implode("`,`", $excelColumnNames) . "`, `beginning_date`, `fraction_up_beginning_stage`, `beginning_stage`, `ending_date`, `fraction_up_ending_stage`, `ending_stage`) 

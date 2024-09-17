@@ -78,7 +78,7 @@ if ($conn->query($sql4) == true && $conn->query($sql3) === true) {
 }
 
 include_once("SimpleXLSX.php");
-$xlsx = SimpleXLSX::parse("Brachiopod.xlsx");
+$xlsx = SimpleXLSX::parse("Porifera.xlsx");
 $columns = [];
 if ($xlsx === false) {
     echo "\nCan't open excel file.";
@@ -86,7 +86,7 @@ if ($xlsx === false) {
     $row = $xlsx->rows(0)[0];
     foreach ($row as $cell) {
         if (!empty($cell)) {
-            $column_name = str_replace(" ", "_", $cell);
+            $column_name = str_replace(" ", "_", trim($cell));
             $columns[] = $column_name;
         }
     }

@@ -2,7 +2,7 @@
 include_once("navBar.php");
 include_once("TimescaleLib.php");
 include_once("SqlConnection.php");
-$stages = parseTimescale("./uploads/MasterChronostrat_StageLookupTable_2020.xlsx");
+$stages = parseTimescale("./uploads/default_timescale.xlsx");
 $periods = [];
 foreach ($stages as $stage) {
     $period = $stage['period'];
