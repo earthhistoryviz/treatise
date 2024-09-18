@@ -171,7 +171,7 @@
             <div id="beginning_stage" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Ending Stage in Treatise Usage: &nbsp;</b>
               <div id="beginning_stage">
-                <?= eliminateParagraphs($fossilData["Last_Occurence"]) ?>
+                <?= eliminateParagraphs($fossilData["Last_Occurrence"]) ?>
               </div>
             </div>
             <div id="ending_stage" class="horiz" style="text-align: left;">
