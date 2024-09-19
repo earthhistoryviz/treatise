@@ -118,19 +118,6 @@
 
         ksort($counts);
 
-        // Always calculate total Genus data
-        if (count($selectedClasses) > 1) {
-            foreach ($counts as $time => $class) {
-                foreach ($class as $class => $values) {
-                    if (!isset($counts[$time]['All-Selections'])) {
-                        $counts[$time]['All-Selections'] = ['Total' => 0, 'New' => 0, 'Extinct' => 0];
-                    }
-                    $counts[$time]['All-Selections']['Total'] += $values['Total'];
-                    $counts[$time]['All-Selections']['New'] += $values['New'];
-                    $counts[$time]['All-Selections']['Extinct'] += $values['Extinct'];
-                }
-            }
-        }
         // Format the counts into the desired JSON object
         $jsonOutput = ['MinDate' => $min_date, 'MaxDate' => $max_date, 'TimeBlocks' => []];
         foreach ($counts as $time => $class) {
@@ -171,7 +158,7 @@
                     y: [],
                     mode: 'lines',
                     name: className,
-                    // fill: 'tonexty',
+                    stackgroup: 'one'
                     };
                     totalTraces.push(traceTotal);
                 }
@@ -186,7 +173,7 @@
                     y: [],
                     mode: 'lines',
                     name: className,
-                    // fill: 'tonexty',
+                    stackgroup: 'one'
                     };
                     newTraces.push(traceNew);
                 }
@@ -201,7 +188,7 @@
                     y: [],
                     mode: 'lines',
                     name: className,
-                    // fill: 'tonexty',
+                    stackgroup: 'one'
                     };
                     extinctTraces.push(traceExtinct);
                 }
@@ -244,7 +231,6 @@
 
         const filteredStages = Object.fromEntries(
             Object.entries(stage_ranges).filter(([stage, [[start, end]]]) => {
-                console.log(start, maxDate);
                 return end <= maxDate;
             })
         );
@@ -257,9 +243,9 @@
                 yref: 'paper',
                 x0: range[0],
                 x1: range[1],
-                y0: -0.002,
+                y0: 0,
                 y1: 0.05,
-                fillcolor: `rgba(${color[0] * 255}, ${color[1] * 255}, ${color[2] * 255}, 0.8)`,
+                fillcolor: `rgba(${color[0] * 255}, ${color[1] * 255}, ${color[2] * 255}, 0.75)`,
                 line: { width: 0.25, color: 'black' }
             };
         });
@@ -296,6 +282,18 @@
             fillcolor: 'rgba(0,0,0,0)'
         };
 
+        const paddingTrace = {
+            x: [Math.min(...timeBins), Math.max(...timeBins)],
+            y: [0, 0],
+            mode: 'lines',
+            line: { color: 'rgba(0,0,0,0)' },
+            showlegend: false
+        };
+
+        totalTraces.unshift(paddingTrace);
+        newTraces.unshift(paddingTrace);
+        extinctTraces.unshift(paddingTrace);
+
         // Plotting Total Genera
         Plotly.newPlot('plot-total', totalTraces, {
             title: {
@@ -303,9 +301,7 @@
                 font: {
                 weight: 'bold'
                 },
-                pad: {
-                   t: 1
-                },
+                y: 0.91,
             },
             xaxis: { title: 'Time (Million Years Ago)', autorange: 'reversed', showgrid: false, zeroline: false, ticks: 'outside', ticklen: 8, tickWidth: 2 },
             yaxis: { title: { text: 'Number of Genera', standoff: 20}, showgrid: false, ticks: 'outside', ticklen: 8, tickWidth: 2 },
@@ -320,7 +316,8 @@
                 text: 'New Genera Over Time',
                 font: {
                     weight: 'bold'
-                }
+                },
+                y: 0.91,
             },
             xaxis: { title: 'Time (Million Years Ago)', autorange: 'reversed', showgrid: false, zeroline: false, ticks: 'outside', ticklen: 8, tickWidth: 2 },
             yaxis: { title: { text: 'Number of New Genera', standoff: 20}, showgrid: false, ticks: 'outside', ticklen: 8, tickWidth: 2 },
@@ -335,7 +332,8 @@
                 text: 'Extinct Genera Over Time',
                 font: {
                     weight: 'bold'
-                }
+                },
+                y: 0.91,
             },
             xaxis: { title: 'Time (Million Years Ago)', autorange: 'reversed', showgrid: false, zeroline: false, ticks: 'outside', ticklen: 8, tickWidth: 2 },
             yaxis: { title: { text: 'Number of Extinct Genera', standoff: 20}, showgrid: false, ticks: 'outside', ticklen: 8, tickWidth: 2 },

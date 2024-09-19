@@ -133,7 +133,7 @@ def plot_data(total_genera, new_genera, extinct_genera):
     all_dates = pd.concat([total_genera['date'], new_genera['beginning_date'], extinct_genera['ending_date']])
     min_date, max_date = all_dates.min(), all_dates.max()
     
-    stage_ranges = {stage: ((start, end), color) for stage, ((start, end), color) in stage_ranges.items() if end <= max_date}
+    stage_ranges = {stage: ((start, end), color) for stage, ((start, end), color) in stage_ranges.items() if end < max_date}
     
     # below will be used to scale that colored portion denoting time periods
     y_max = total_genera['total_genera'].max()
@@ -154,6 +154,25 @@ def plot_data(total_genera, new_genera, extinct_genera):
         text_x = start + width / 2
         ax1.text(text_x, stage_y_position + dynamic_height / 2, stage[0], ha='center', va='center', color='black', fontsize=12)
         # that weird formula for second argument is to make sure it is centered
+        
+    ax1.annotate('Late Devonian Extinction\nCause: Possibly due to global cooling', xy=(380, 450), xytext=(0, 20),
+                 textcoords='offset points', arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=-.1'),
+                 bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="b", lw=2))
+
+    ax1.annotate('Permian-Triassic Extinction\nCause: Possibly global warming', xy=(245, 250), xytext=(0, 50),
+                    textcoords='offset points', arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=-.5'),
+                    bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="b", lw=2))
+
+    ax1.annotate('Late Ordovician Extinction\nCause: Possibly global warming', xy=(440, 250), xytext=(-115, 50),
+                 textcoords='offset points', arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=-.5'),
+                 bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="b", lw=2))
+    ax1.annotate('End-Triassic Extinction\nCause: Possibly due to massive volcanism\nand associated climate change', xy=(201, 110), xytext=(-10, 50),
+                 textcoords='offset points', arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=.1'),
+                 bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="b", lw=2))
+
+    ax1.annotate('Cretaceous-Paleogene (K-Pg) Extinction\nCause: Asteroid impact and volcanic activity', xy=(60, 70), xytext=(-100, 140),
+                 textcoords='offset points', arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=-.1'),
+                 bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="b", lw=2))
     
     fig1.savefig('total_genera.png')
     
