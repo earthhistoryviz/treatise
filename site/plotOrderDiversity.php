@@ -13,64 +13,86 @@
   <div class="main-container">
     <?php
       session_start();
-    $auth = $_SESSION["loggedIn"];
-    include_once("navBar.php");
-    include_once("SqlConnection.php");
+      $auth = $_SESSION["loggedIn"];
+      include_once("navBar.php");
+      include_once("SqlConnection.php");
 
-    $selectedGroupingName = "Class";
+      // Define group types for selection
+      $groupingTypes = ['Class', 'Order'];
 
-    // Fetching class from database
-    $allClasses = [];
-    $sqlClass = "SELECT DISTINCT CLASS FROM fossil";
-    $resultClass = $conn->query($sqlClass);
-    while ($row = $resultClass->fetch_assoc()) {
-        $allClasses[] = $row["CLASS"];
-    }
-    $conn->close();
+      // Get selected grouping type from form submission, default is 'Class'
+      $selectedGroupingType = isset($_GET['groupingType']) ? $_GET['groupingType'] : 'Class';
 
-    // Get selected class from the form submission
-    $selectedClasses = isset($_GET['class']) ? $_GET['class'] : [];
+      // Fetch available groupings (either Class or Order) from database based on selected grouping type
+      $allGroupings = [];
+      $sqlGrouping = "SELECT DISTINCT `$selectedGroupingType` FROM fossil WHERE `$selectedGroupingType` IS NOT NULL";
+      $resultGrouping = $conn->query($sqlGrouping);
+      while ($row = $resultGrouping->fetch_assoc()) {
+          $allGroupings[] = $row[$selectedGroupingType];
+      }
+      $conn->close();
+
+      // Get selected groupings from the form submission
+      // If no selection, default to "All"
+      $selectedGroupings = isset($_GET['group']) ? $_GET['group'] : ['All'];
     ?>
 
     <div class="container mt-5">
       <h1 style="text-align: center">Plot Diversity Curves</h1>
       <form method="GET">
         <div class="d-flex flex-column justify-content-center align-items-center">
+            <!-- Dropdown to select the Grouping Type (Class or Order) -->
             <div class="mb-3 mt-3 d-flex flex-row align-items-center justify-content-center gap-3">
-                <label for="classSelect" class="form-label">Select Fossil Classes:</label>
-                <select class="form-select" id="classSelect" name="class[]" multiple size="6" style="width: 200px;">
-                    <option value="All" <?php echo in_array("All", $selectedClasses) ? 'selected' : ''; ?>>All</option>
-                    <?php foreach ($allClasses as $class): ?>
-                        <option value="<?php echo htmlspecialchars($class); ?>" <?php echo in_array($class, $selectedClasses) ? 'selected' : ''; ?>><?php echo htmlspecialchars($class); ?></option>
+                <label for="groupingTypeSelect" class="form-label">Select Grouping Type:</label>
+                <select class="form-select" id="groupingTypeSelect" name="groupingType" style="width: 200px;" onchange="this.form.submit()">
+                    <?php foreach ($groupingTypes as $type): ?>
+                        <option value="<?php echo htmlspecialchars($type); ?>" <?php echo $selectedGroupingType == $type ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($type); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <!-- Dropdown to select specific Groupings (Class/Order/etc.) -->
+            <div class="mb-3 d-flex flex-row align-items-center justify-content-center gap-3">
+                <label for="groupSelect" class="form-label">Select Fossil Grouping:</label>
+                <select class="form-select" id="groupSelect" name="group[]" multiple size="6" style="width: 200px;">
+                    <option value="All" <?php echo in_array("All", $selectedGroupings) ? 'selected' : ''; ?>>All</option>
+                    <?php foreach ($allGroupings as $grouping): ?>
+                        <option value="<?php echo htmlspecialchars($grouping); ?>" <?php echo in_array($grouping, $selectedGroupings) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($grouping); ?>
+                        </option>
                     <?php endforeach; ?>
                 </select>
                 <small class="form-text text-muted">Hold down the Ctrl (Windows) or Command (Mac) button to select multiple options.</small>
             </div>
             <button type="submit" class="btn btn-primary" style="width: 150px;">Submit</button>
         </div>
-    </form>
+      </form>
     </div>
 
     <?php
-    if (!empty($selectedClasses)) {
-        if (in_array('All', $selectedClasses)) {
-            $selectedClasses = $allClasses;
+
+    if (!empty($selectedGroupings)) {
+        // If "All" is selected, include all available groupings
+        if (in_array('All', $selectedGroupings)) {
+            $selectedGroupings = $allGroupings;
         }
 
         // Initialize variables to store the time range and counts
         $min_date = PHP_INT_MAX;
         $max_date = PHP_INT_MIN;
         $counts = [];
-        foreach ($selectedClasses as $currentClass) {
-            $apiUrl = "https://{$_SERVER['HTTP_HOST']}.treatise.geolex.org/searchAPI.php?classfilter=" . urlencode($currentClass);
-            $response = file_get_contents($apiUrl);
 
-            $data = json_decode($response, true); // Decode the JSON response into an associative array
+        foreach ($selectedGroupings as $currentGrouping) {
+            $filterType = ($selectedGroupingType == 'Class') ? 'classfilter' : 'orderfilter';
+            $apiUrl = "https://{$_SERVER['HTTP_HOST']}.treatise.geolex.org/searchAPI.php?$filterType=" . urlencode($currentGrouping);
+            $response = file_get_contents($apiUrl);
+            $data = json_decode($response, true);
 
             // Process the data to determine min and max dates
             $processedData = [];
             foreach ($data as $entry) {
-                $class = $entry['Class'];
+                $grouping = $entry[$selectedGroupingType];
                 $genus = $entry['Genus'];
                 $beginning_date = (int)$entry['beginning_date'];
                 $ending_date = (int)$entry['ending_date'];
@@ -80,15 +102,16 @@
                 $max_date = max($max_date, $beginning_date);
 
                 $processedData[] = [
-                    'Class' => $class,
+                    'Grouping' => $grouping,
                     'Genus' => $genus,
                     'beginning_date' => $beginning_date,
                     'ending_date' => $ending_date
                 ];
             }
-            // Populate counts for each time block and class
+
+            // Populate counts for each time block and grouping
             foreach ($processedData as $entry) {
-                $class = $entry['Class'];
+                $grouping = $entry['Grouping'];
                 $beginning_date = $entry['beginning_date'];
                 $ending_date = $entry['ending_date'];
 
@@ -97,20 +120,20 @@
 
                 foreach ($timeBlocks as $time) {
                     // Initialize counts array if not already set
-                    if (!isset($counts[$time][$class])) {
-                        $counts[$time][$class] = ['Total' => 0, 'New' => 0, 'Extinct' => 0];
+                    if (!isset($counts[$time][$grouping])) {
+                        $counts[$time][$grouping] = ['Total' => 0, 'New' => 0, 'Extinct' => 0];
                     }
                     // Count Total Genera Active in the Time Block
                     if ($beginning_date >= $time && ($ending_date <= $time || $ending_date == 0)) {
-                        $counts[$time][$class]['Total']++;
+                        $counts[$time][$grouping]['Total']++;
                     }
                     // Count New Genera in the Time Block
                     if ($beginning_date >= $time && $beginning_date < $time + 5) {
-                        $counts[$time][$class]['New']++;
+                        $counts[$time][$grouping]['New']++;
                     }
                     // Count Extinct Genera in the Time Block
                     if ($ending_date > 0 && $ending_date >= $time && $ending_date < $time + 5) {
-                        $counts[$time][$class]['Extinct']++;
+                        $counts[$time][$grouping]['Extinct']++;
                     }
                 }
             }
@@ -120,11 +143,11 @@
 
         // Format the counts into the desired JSON object
         $jsonOutput = ['MinDate' => $min_date, 'MaxDate' => $max_date, 'TimeBlocks' => []];
-        foreach ($counts as $time => $class) {
-            $blockData = ['TimeBlock' => $time, 'Classes' => []];
-            foreach ($class as $class => $values) {
-                $blockData['Classes'][] = [
-                    'Class' => $class,
+        foreach ($counts as $time => $grouping) {
+            $blockData = ['TimeBlock' => $time, 'Groupings' => []];
+            foreach ($grouping as $groupingName => $values) {
+                $blockData['Groupings'][] = [
+                    'Grouping' => $groupingName,
                     'Total' => $values['Total'],
                     'New' => $values['New'],
                     'Extinct' => $values['Extinct']
@@ -148,52 +171,52 @@
         const extinctTraces = [];
 
         data.TimeBlocks.forEach(block => {
-            block.Classes.forEach(classData => {
-                const className = classData.Class;
+            block.Groupings.forEach(groupData => {
+                const groupingName = groupData.Grouping;
                 // For Total Genera Plot
-                let traceTotal = totalTraces.find(trace => trace.name === className);
+                let traceTotal = totalTraces.find(trace => trace.name === groupingName);
                 if (!traceTotal) {
                     traceTotal = {
                     x: [],
                     y: [],
                     mode: 'lines',
-                    name: className,
+                    name: groupingName,
                     stackgroup: 'one'
                     };
                     totalTraces.push(traceTotal);
                 }
                 traceTotal.x.push(block.TimeBlock);
-                traceTotal.y.push(classData.Total);
+                traceTotal.y.push(groupData.Total);
 
                 // For New Genera Plot
-                let traceNew = newTraces.find(trace => trace.name === className);
+                let traceNew = newTraces.find(trace => trace.name === groupingName);
                 if (!traceNew) {
                     traceNew = {
                     x: [],
                     y: [],
                     mode: 'lines',
-                    name: className,
+                    name: groupingName,
                     stackgroup: 'one'
                     };
                     newTraces.push(traceNew);
                 }
                 traceNew.x.push(block.TimeBlock);
-                traceNew.y.push(classData.New);
+                traceNew.y.push(groupData.New);
 
                 // For Extinct Genera Plot
-                let traceExtinct = extinctTraces.find(trace => trace.name === className);
+                let traceExtinct = extinctTraces.find(trace => trace.name === groupingName);
                 if (!traceExtinct) {
                     traceExtinct = {
                     x: [],
                     y: [],
                     mode: 'lines',
-                    name: className,
+                    name: groupingName,
                     stackgroup: 'one'
                     };
                     extinctTraces.push(traceExtinct);
                 }
                 traceExtinct.x.push(block.TimeBlock);
-                traceExtinct.y.push(classData.Extinct);
+                traceExtinct.y.push(groupData.Extinct);
             });
         });
 
@@ -343,7 +366,7 @@
         });
     </script>
     <?php
-    } // End if for selected class
+    } // End if for selected grouping
     ?>
 
   </div> 
