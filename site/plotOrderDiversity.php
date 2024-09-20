@@ -30,6 +30,7 @@
       while ($row = $resultGrouping->fetch_assoc()) {
           $allGroupings[] = $row[$selectedGroupingType];
       }
+      sort($allGroupings);
       $conn->close();
 
       // Get selected groupings from the form submission
@@ -330,7 +331,8 @@
             yaxis: { title: { text: 'Number of Genera', standoff: 20}, showgrid: false, ticks: 'outside', ticklen: 8, tickWidth: 2 },
             height: 800,
             shapes: [...shapes, borderShape],
-            annotations: annotations
+            annotations: annotations,
+            legend: {traceorder: 'normal'},
         });
 
         // Plotting New Genera
@@ -346,7 +348,8 @@
             yaxis: { title: { text: 'Number of New Genera', standoff: 20}, showgrid: false, ticks: 'outside', ticklen: 8, tickWidth: 2 },
             height: 800,
             shapes: [...shapes, borderShape],
-            annotations: annotations
+            annotations: annotations,
+            legend: {traceorder: 'normal'},
         });
 
         // Plotting Extinct Genera
@@ -362,7 +365,8 @@
             yaxis: { title: { text: 'Number of Extinct Genera', standoff: 20}, showgrid: false, ticks: 'outside', ticklen: 8, tickWidth: 2 },
             height: 800,
             shapes: [...shapes, borderShape],
-            annotations: annotations
+            annotations: annotations,
+            legend: {traceorder: 'normal'},
         });
     </script>
     <?php
