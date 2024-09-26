@@ -73,6 +73,7 @@
 
     <?php
 
+    $fossilsOlderThan750Ma = [];
     if (!empty($selectedGroupings)) {
         // If "All" is selected, include all available groupings
         if (in_array('All', $selectedGroupings)) {
@@ -97,6 +98,11 @@
                 $genus = $entry['Genus'];
                 $beginning_date = (int)$entry['beginning_date'];
                 $ending_date = (int)$entry['ending_date'];
+
+                if ($beginning_date >= 750) {
+                    $fossilsOlderThan750Ma[] = $entry;
+                    continue;
+                }
 
                 // Update min and max dates
                 $min_date = min($min_date, $beginning_date);
@@ -159,6 +165,11 @@
         ?>
     
     <!-- Divs for Plotly Charts -->
+    <?php if (count($fossilsOlderThan750Ma) > 0): ?>
+        <div class="container mt-5">
+            <h4 style="text-align: center">Note: There are <?php echo count($fossilsOlderThan750Ma); ?> fossils older than 750 Ma not shown on the following charts</h4>
+        </div>
+    <?php endif; ?>
     <div id="plot-total" class="mb-5 w-75"></div>
     <div id="plot-new" class="mb-5 w-75"></div>
     <div id="plot-extinct" class="mb-5 w-75"></div>
@@ -248,14 +259,13 @@
             'Cretaceous': [[145.73, 66.04], [140/255, 205/255, 96/255]],
             'Paleogene': [[66.04, 23.04], [253/255, 108/255, 98/255]],
             'Neogene': [[23.04, 2.58], [255/255, 255/255, 51/255]],
-            'Quaternary': [[2.58, -41], [255/255, 237/255, 179/255]]
+            'Quaternary': [[2.58, -20], [255/255, 237/255, 179/255]]
         };
 
         const maxDate = data.MaxDate;
-
         const filteredStages = Object.fromEntries(
             Object.entries(stage_ranges).filter(([stage, [[start, end]]]) => {
-                return end <= maxDate;
+                return end < maxDate;
             })
         );
 

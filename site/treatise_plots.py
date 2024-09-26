@@ -29,6 +29,10 @@ def process_data(df):
     df['beginning_date'] = pd.to_numeric(df['beginning_date'], errors='coerce')
     df['ending_date'] = pd.to_numeric(df['ending_date'], errors='coerce')
     
+    # Filter out dates older than 750 Ma
+    filtered_out = df[(df['beginning_date'] > 750) | (df['ending_date'] > 750)].shape[0]
+    df = df[(df['beginning_date'] <= 750) & ((df['ending_date'] <= 750) | (df['ending_date'] == 0))]
+    
     # The original code tried to calculate new genera by filtering out still alive genera (ending_date != 0).
     # This excluded genera that are still alive, leading to incorrect counts of new genera.
     # Group by beginning_date to count new genera
@@ -95,9 +99,9 @@ def process_data(df):
     new_genera_grouped = new_genera_grouped.dropna()
     extinct_genera_grouped = extinct_genera_grouped.dropna()
 
-    return total_genera, new_genera_grouped, extinct_genera_grouped
+    return total_genera, new_genera_grouped, extinct_genera_grouped, filtered_out
 
-def plot_data(total_genera, new_genera, extinct_genera):
+def plot_data(total_genera, new_genera, extinct_genera, filtered_out):
     figure_padding = 10
     
     stage_ranges = {
@@ -141,6 +145,8 @@ def plot_data(total_genera, new_genera, extinct_genera):
     stage_y_position = -1 * dynamic_height  # Position them below the x-axis
     # Plot Total Genera
     fig1, ax1 = plt.subplots(figsize=(20, 8))
+    if filtered_out > 0:
+        fig1.suptitle("Note: There are {} fossils older than 750 Ma not shown on the following charts".format(filtered_out), fontsize=16, ha='center', va='bottom', y=0.95)
     ax1.plot(total_genera['date'], total_genera['total_genera'], color='b')
     ax1.set_xlim([max_date, min_date - figure_padding])
     ax1.set_title('Total Number of Genera per Date')
@@ -220,5 +226,5 @@ def plot_data(total_genera, new_genera, extinct_genera):
 
 if __name__ == "__main__":
     df = fetch_data()
-    total_genera, new_genera, extinct_genera = process_data(df)
-    plot_data(total_genera, new_genera, extinct_genera)
+    total_genera, new_genera, extinct_genera, filtered_out = process_data(df)
+    plot_data(total_genera, new_genera, extinct_genera, filtered_out)
