@@ -93,35 +93,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                         echo "<br>Found Last Occurrence <b>$endingStage</b> within International Stage as <b>$internationalTop</b>.";
                         // Use previous row values if no values are provided
                         $phylumIndex = $excelColumnNamesWithIndexes['Phylum'];
-                        if ($escaped_row[$phylumIndex] == "NULL" || empty($escaped_row[$phylumIndex]) || str_starts_with($escaped_row[$phylumIndex], "'pg.") || str_starts_with($escaped_row[$phylumIndex], "'p.") || $escaped_row[$phylumIndex] == "' '") {
+                        if ($escaped_row[$phylumIndex] == "NULL" || empty(trim($escaped_row[$phylumIndex])) || str_starts_with($escaped_row[$phylumIndex], "'pg.") || str_starts_with($escaped_row[$phylumIndex], "'p.") || $escaped_row[$phylumIndex] == "' '") {
                             echo "<br>No valid phylum provided, using previous value: $previousPhylum";
                             $escaped_row[$phylumIndex] = $previousPhylum;
                         } else {
                             $previousPhylum = $escaped_row[0];
                         }
                         $classIndex = $excelColumnNamesWithIndexes['Class'];
-                        if ($escaped_row[$classIndex] == "NULL" || empty($escaped_row[$classIndex]) || str_starts_with($escaped_row[$classIndex], "'pg.") || str_starts_with($escaped_row[$classIndex], "'p.")) {
+                        if ($escaped_row[$classIndex] == "NULL" || empty(trim($escaped_row[$classIndex])) || str_starts_with($escaped_row[$classIndex], "'pg.") || str_starts_with($escaped_row[$classIndex], "'p.")) {
                             echo "<br>No valid class provided, using previous value: $previousClass";
                             $escaped_row[$classIndex] = $previousClass;
                         } else {
                             $previousClass = $escaped_row[$classIndex];
                         }
-                        $genusIndex = $excelColumnNamesWithIndexes['Genus'];
-                        if ($escaped_row[$genusIndex] == "NULL" || empty($escaped_row[$genusIndex]) || str_starts_with($escaped_row[$genusIndex], "'pg.") || str_starts_with($escaped_row[$genusIndex], "'p.")) {
+                        $orderIndex = $excelColumnNamesWithIndexes['Order'];
+                        if ($escaped_row[$orderIndex] == "NULL" || empty(trim($escaped_row[$orderIndex])) || str_starts_with($escaped_row[$orderIndex], "'pg.") || str_starts_with($escaped_row[$orderIndex], "'p.")) {
                             echo "<br>No valid order provided, using previous value: $previousOrder";
-                            $escaped_row[$genusIndex] = $previousOrder;
+                            $escaped_row[$orderIndex] = $previousOrder;
                         } else {
-                            $previousOrder = $escaped_row[$genusIndex];
+                            var_dump($escaped_row[$orderIndex]);
+                            $previousOrder = $escaped_row[$orderIndex];
                         }
                         $superFamilyIndex = $excelColumnNamesWithIndexes['Superfamily'];
-                        if ($escaped_row[$superFamilyIndex] == "NULL" || empty($escaped_row[$superFamilyIndex]) || str_starts_with($escaped_row[$superFamilyIndex], "'pg.") || str_starts_with($escaped_row[$superFamilyIndex], "'p.")) {
+                        if ($escaped_row[$superFamilyIndex] == "NULL" || empty(trim($escaped_row[$superFamilyIndex])) || str_starts_with($escaped_row[$superFamilyIndex], "'pg.") || str_starts_with($escaped_row[$superFamilyIndex], "'p.")) {
                             echo "<br>No valid superfamily provided, using previous value: $previousSuperfamily";
                             $escaped_row[$superFamilyIndex] = $previousSuperfamily;
                         } else {
                             $previousSuperfamily = $escaped_row[$superFamilyIndex];
                         }
                         $familyIndex = $excelColumnNamesWithIndexes['Family'];
-                        if ($escaped_row[$familyIndex] == "NULL" || empty($escaped_row[$familyIndex]) || str_starts_with($escaped_row[$familyIndex], "'pg.") || str_starts_with($escaped_row[$familyIndex], "'p.")) {
+                        if ($escaped_row[$familyIndex] == "NULL" || empty(trim($escaped_row[$familyIndex])) || str_starts_with($escaped_row[$familyIndex], "'pg.") || str_starts_with($escaped_row[$familyIndex], "'p.")) {
                             echo "<br>No valid family provided, using previous value: $previousFamily";
                             $escaped_row[$familyIndex] = $previousFamily;
                         } else {
