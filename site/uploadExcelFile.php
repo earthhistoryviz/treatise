@@ -111,7 +111,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                             echo "<br>No valid order provided, using previous value: $previousOrder";
                             $escaped_row[$orderIndex] = $previousOrder;
                         } else {
-                            var_dump($escaped_row[$orderIndex]);
                             $previousOrder = $escaped_row[$orderIndex];
                         }
                         $superFamilyIndex = $excelColumnNamesWithIndexes['Superfamily'];
