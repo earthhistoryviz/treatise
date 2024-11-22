@@ -11,13 +11,12 @@
 <body>
   <div class="main-container">
     <?php
-      session_start();
+    session_start();
     $auth = $_SESSION["loggedIn"];
     include_once("navBar.php");
     include_once("generalSearchBar.php");
-
     // Always set the default state to false (ungrouped) unless toggled by user action
-    $isGrouped = false;  // Default to ungrouped
+    $isGrouped = false;  // Default to ungroup
 
     // Handle toggle change via POST request
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['toggleGrouping'])) {
@@ -151,6 +150,120 @@
           } else { ?>
         <br><br>
         <h3>Diversity Over Time Charts Created from Our Database:</h3>
+        <div>
+          <button class="btn btn-primary mt-1" id="downloadBtn">Download Diversity Curves</button>
+          <button class="btn btn-primary mt-1" id="goToSiteBtn"
+            onclick="window.location.href='tscLinkAPI.php'">
+            View Curves on TSC Online
+          </button>
+        </div>
+        <script>
+          async function fetchData() {
+            const url = "https://<?=$_SERVER['HTTP_HOST']?>.treatise.geolex.org/searchAPI.php";
+            try {
+              const response = await fetch(url);
+              const data = await response.json();
+              const processedData = [];
+              let min_new = Number.MAX_SAFE_INTEGER;
+              let max_new = Number.MIN_SAFE_INTEGER;
+
+              let min_extinct = Number.MAX_SAFE_INTEGER;
+              let max_extinct = Number.MIN_SAFE_INTEGER;
+
+              let min_total = Number.MAX_SAFE_INTEGER;
+              let max_total = Number.MIN_SAFE_INTEGER;
+
+              let min_count = Number.MAX_SAFE_INTEGER;
+              let max_count = Number.MIN_SAFE_INTEGER;
+
+              let max_date = Number.MIN_SAFE_INTEGER;
+
+              Object.entries(data).forEach(([genus, entry]) => {
+                const beginning_date = parseFloat(entry['beginning_date']);
+                const ending_date = parseFloat(entry['ending_date']);
+                processedData.push({
+                  beginning_date: beginning_date,
+                  ending_date: ending_date
+                });
+                max_date = Math.max(max_date, beginning_date, ending_date);
+              });
+
+              const counts = {};
+              const timeBlocks = Array.from({ length: Math.ceil(max_date / 5) + 1 }, (_, i) => i * 5);
+
+              processedData.forEach(entry => {
+                const beginning_date = entry.beginning_date;
+                const ending_date = entry.ending_date;
+
+                timeBlocks.forEach(time => {
+                  if (!counts[time]) {
+                    counts[time] = { Total: 0, New: 0, Extinct: 0 };
+                  }
+                  // Count Total Genera Active in the Time Block
+                  if (beginning_date >= time && (ending_date <= time || ending_date === 0)) {
+                    counts[time].Total++;
+                  }
+                  // Count New Genera in the Time Block
+                  if (beginning_date >= time && beginning_date < time + 5) {
+                    counts[time].New++;
+                  }
+                  // Count Extinct Genera in the Time Block
+                  if (ending_date > 0 && ending_date >= time && ending_date < time + 5) {
+                    counts[time].Extinct++;
+                  }
+                });
+              });
+
+              Object.values(counts).forEach(({ Total, New, Extinct }) => {
+                min_total = Math.min(min_total, Total);
+                max_total = Math.max(max_total, Total);
+
+                min_new = Math.min(min_new, New);
+                max_new = Math.max(max_new, New);
+
+                min_extinct = Math.min(min_extinct, Extinct);
+                max_extinct = Math.max(max_extinct, Extinct);
+              });
+
+              const sortedCounts = Object.keys(counts).sort((a, b) => b - a).reduce((acc, key) => {
+                acc[key] = counts[key];
+                return acc;
+              }, {});
+
+              let datapack = "format version:\t1.3\n";
+              datapack += "date:\t" + new Date().toLocaleDateString("en-GB") + "\n\n";
+
+              datapack += "Total-Genera\tpoint\t200\t24/156/243\n";
+              datapack += `rect\tline\tnofill\t${min_total}\t${max_total}\tsmoothed\n`;
+              for (let i = 0; i < timeBlocks.length; i++) {
+                  datapack += `\t${timeBlocks[i]}\t${sortedCounts[timeBlocks[i]].Total}\n`;
+              }
+              datapack += "\n";
+
+              datapack += "New-Genera\tpoint\t200\t161/205/103\n";
+              datapack += `rect\tline\tnofill\t${min_new}\t${max_new}\tsmoothed\n`;
+              for (let i = 0; i < timeBlocks.length; i++) {
+                datapack += `\t${timeBlocks[i]}\t${sortedCounts[timeBlocks[i]].New}\n`;
+              }
+              datapack += "\n";
+
+              datapack += "Extinct-Genera\tpoint\t200\t255/0/0\n";
+              datapack += `rect\tline\tnofill\t${min_extinct}\t${max_extinct}\tsmoothed\n`;
+              for (let i = 0; i < timeBlocks.length; i++) {
+                  datapack += `\t${timeBlocks[i]}\t${sortedCounts[timeBlocks[i]].Extinct}\n`;
+              }
+
+              const blob = new Blob([datapack], { type: 'text/plain' });
+              const link = document.createElement('a');
+              link.href = URL.createObjectURL(blob);
+              link.download = 'datapack.txt';
+              link.click();
+            } catch (error) {
+              console.error('Error fetching data:', error);
+            }
+          }
+          document.getElementById('downloadBtn').addEventListener('click', fetchData);
+        </script>
         <br>
         <?php
             /**

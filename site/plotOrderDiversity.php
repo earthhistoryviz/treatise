@@ -13,29 +13,29 @@
   <div class="main-container">
     <?php
       session_start();
-      $auth = $_SESSION["loggedIn"];
-      include_once("navBar.php");
-      include_once("SqlConnection.php");
+    $auth = $_SESSION["loggedIn"];
+    include_once("navBar.php");
+    include_once("SqlConnection.php");
 
-      // Define group types for selection
-      $groupingTypes = ['Class', 'Order'];
+    // Define group types for selection
+    $groupingTypes = ['Class', 'Order'];
 
-      // Get selected grouping type from form submission, default is 'Class'
-      $selectedGroupingType = isset($_GET['groupingType']) ? $_GET['groupingType'] : 'Class';
+    // Get selected grouping type from form submission, default is 'Class'
+    $selectedGroupingType = isset($_GET['groupingType']) ? $_GET['groupingType'] : 'Class';
 
-      // Fetch available groupings (either Class or Order) from database based on selected grouping type
-      $allGroupings = [];
-      $sqlGrouping = "SELECT DISTINCT `$selectedGroupingType` FROM fossil WHERE `$selectedGroupingType` IS NOT NULL";
-      $resultGrouping = $conn->query($sqlGrouping);
-      while ($row = $resultGrouping->fetch_assoc()) {
-          $allGroupings[] = $row[$selectedGroupingType];
-      }
-      sort($allGroupings);
-      $conn->close();
+    // Fetch available groupings (either Class or Order) from database based on selected grouping type
+    $allGroupings = [];
+    $sqlGrouping = "SELECT DISTINCT `$selectedGroupingType` FROM fossil WHERE `$selectedGroupingType` IS NOT NULL";
+    $resultGrouping = $conn->query($sqlGrouping);
+    while ($row = $resultGrouping->fetch_assoc()) {
+        $allGroupings[] = $row[$selectedGroupingType];
+    }
+    sort($allGroupings);
+    $conn->close();
 
-      // Get selected groupings from the form submission
-      // If no selection, default to "All"
-      $selectedGroupings = isset($_GET['group']) ? $_GET['group'] : ['All'];
+    // Get selected groupings from the form submission
+    // If no selection, default to "All"
+    $selectedGroupings = isset($_GET['group']) ? $_GET['group'] : ['All'];
     ?>
 
     <div class="container mt-5">
@@ -175,7 +175,7 @@
     <div id="plot-extinct" class="mb-5 w-75"></div>
 
     <script>
-        const data = <?php echo json_encode($jsonOutput, JSON_PRETTY_PRINT); ?>;
+        const data = <?php echo json_encode($jsonOutput); ?>;
         const timeBins = data.TimeBlocks.map(block => block.TimeBlock);
 
         const totalTraces = [];

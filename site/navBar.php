@@ -9,6 +9,8 @@ if ($_SESSION["loggedIn"]) {
       </div>
       <a href="index.php">Home</a>
       <a href="plotOrderDiversity.php">Plot Diversity Curves</a>
+      <a href="tree.php"> Tree of Life</a>
+      <a href="aboutPageTreatise.php">About</a>
       <a style="margin-left: auto; padding-right: 10px;" href="/login.php">Admin Login</a>
     </div>
   <?php
