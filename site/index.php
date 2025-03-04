@@ -159,7 +159,7 @@
         </div>
         <script>
           async function fetchData() {
-            const url = "https://<?=$_SERVER['HTTP_HOST']?>.treatise.geolex.org/searchAPI.php";
+            const url = "http://localhost:80/searchAPI.php";
             try {
               const response = await fetch(url);
               const data = await response.json();
