@@ -2,6 +2,7 @@
 <?php
 include_once("adminDash.php");
 include_once("TimescaleLib.php");
+include_once("uploadImage.php");
 echo "<div style='width: 100%; margin: 10px;'>";
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
     $file = $_FILES["upfile"];
@@ -43,11 +44,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                         }, $row);
                         //Cut out columns that don't fit the size of columns (most likely empty columns)
                         $escaped_row = array_slice($escaped_row, 0, count($excelColumnNames));
-                        //Get base and top from row parsed in excel file, remove whitespace and double or single quotes
-                        $baseStage = ucwords(trim(trim($escaped_row[$excelColumnNamesWithIndexes['First_Occurrence']], "'\"")));
-                        $topStage = ucwords(trim(trim($escaped_row[$excelColumnNamesWithIndexes['Last_Occurrence']], "'\"")));
                         $genera = trim(ltrim(trim(trim($escaped_row[$excelColumnNamesWithIndexes['Genus']], "'\""), "?")));
                         if ($genera == null || $genera === "NULL") {
+                            continue;
+                        }
+                        //Get base and top from row parsed in excel file, remove whitespace and double or single quotes
+                        // In the excel file, change the beginning and ending stages to First_Occurrence and Last_Occurrence
+                        $baseStage = ucwords(trim(trim($escaped_row[$excelColumnNamesWithIndexes['First_Occurrence']], "'\"")));
+                        if (!$baseStage || $baseStage === "NULL") {
+                            echo "<br>Skipping $genera with empty First Occurrence.";
+                            continue;
+                        }
+                        $topStage = ucwords(trim(trim($escaped_row[$excelColumnNamesWithIndexes['Last_Occurrence']], "'\"")));
+                        if (!$topStage || $topStage === "NULL") {
+                            echo "<br>Skipping $genera with empty Last Occurrence.";
                             continue;
                         }
                         // Now do calculations about age here, geological stages in $geologicalStages
@@ -93,38 +103,43 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                         echo "<br>Found Last Occurrence <b>$endingStage</b> within International Stage as <b>$internationalTop</b>.";
                         // Use previous row values if no values are provided
                         $phylumIndex = $excelColumnNamesWithIndexes['Phylum'];
-                        if ($escaped_row[$phylumIndex] == "NULL" || empty(trim($escaped_row[$phylumIndex])) || str_starts_with($escaped_row[$phylumIndex], "'pg.") || str_starts_with($escaped_row[$phylumIndex], "'p.") || $escaped_row[$phylumIndex] == "' '") {
+                        $invalidPhylum = isInvalidEscapeRow($phylumIndex, $escaped_row);
+                        if ($invalidPhylum == 1) {
                             echo "<br>No valid phylum provided, using previous value: $previousPhylum";
-                            $escaped_row[$phylumIndex] = $previousPhylum;
-                        } else {
-                            $previousPhylum = $escaped_row[0];
+                            $escaped_row[$phylumIndex] = $previousPhylum; // if no phylum is provided, use the previous phylum
+                        } elseif ($invalidPhylum == 0) {
+                            $previousPhylum = $escaped_row[0]; // if phylum is provided, update the previous phylum
                         }
                         $classIndex = $excelColumnNamesWithIndexes['Class'];
-                        if ($escaped_row[$classIndex] == "NULL" || empty(trim($escaped_row[$classIndex])) || str_starts_with($escaped_row[$classIndex], "'pg.") || str_starts_with($escaped_row[$classIndex], "'p.")) {
+                        $invalidClass = isInvalidEscapeRow($classIndex, $escaped_row);
+                        if ($invalidClass == 1) {
                             echo "<br>No valid class provided, using previous value: $previousClass";
                             $escaped_row[$classIndex] = $previousClass;
-                        } else {
+                        } elseif ($invalidClass == 0) {
                             $previousClass = $escaped_row[$classIndex];
                         }
                         $orderIndex = $excelColumnNamesWithIndexes['Order'];
-                        if ($escaped_row[$orderIndex] == "NULL" || empty(trim($escaped_row[$orderIndex])) || str_starts_with($escaped_row[$orderIndex], "'pg.") || str_starts_with($escaped_row[$orderIndex], "'p.")) {
+                        $invalidOrder = isInvalidEscapeRow($orderIndex, $escaped_row);
+                        if ($invalidOrder == 1) {
                             echo "<br>No valid order provided, using previous value: $previousOrder";
                             $escaped_row[$orderIndex] = $previousOrder;
-                        } else {
+                        } elseif ($invalidOrder == 0) {
                             $previousOrder = $escaped_row[$orderIndex];
                         }
                         $superFamilyIndex = $excelColumnNamesWithIndexes['Superfamily'];
-                        if ($escaped_row[$superFamilyIndex] == "NULL" || empty(trim($escaped_row[$superFamilyIndex])) || str_starts_with($escaped_row[$superFamilyIndex], "'pg.") || str_starts_with($escaped_row[$superFamilyIndex], "'p.")) {
+                        $invalidSuperfamily = isInvalidEscapeRow($superFamilyIndex, $escaped_row);
+                        if ($invalidSuperfamily == 1) {
                             echo "<br>No valid superfamily provided, using previous value: $previousSuperfamily";
                             $escaped_row[$superFamilyIndex] = $previousSuperfamily;
-                        } else {
+                        } elseif ($invalidSuperfamily == 0) {
                             $previousSuperfamily = $escaped_row[$superFamilyIndex];
                         }
                         $familyIndex = $excelColumnNamesWithIndexes['Family'];
-                        if ($escaped_row[$familyIndex] == "NULL" || empty(trim($escaped_row[$familyIndex])) || str_starts_with($escaped_row[$familyIndex], "'pg.") || str_starts_with($escaped_row[$familyIndex], "'p.")) {
+                        $invalidFamily = isInvalidEscapeRow($familyIndex, $escaped_row);
+                        if ($invalidFamily == 1) {
                             echo "<br>No valid family provided, using previous value: $previousFamily";
                             $escaped_row[$familyIndex] = $previousFamily;
-                        } else {
+                        } elseif ($invalidFamily == 0) {
                             $previousFamily = $escaped_row[$familyIndex];
                         }
                         // On DUPLICATE KEY UPDATE is needed in the case we're tring to update a row that already exists in the table
@@ -146,6 +161,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                         } else {
                             echo "<br>Inserted genera <b>$genera</b> into database.<br>";
                         }
+
+                        // Add images to upload directory based on links in URL
+                        $allImageLinks = $escaped_row[$excelColumnNamesWithIndexes['figure_link']];
+                        // Regular expression to capture URLs inside parentheses
+                        preg_match_all('/\((https?:\/\/[^\)]+)\)/', $allImageLinks, $matches);
+                        // Extracted URLs will be in $matches[1], $matches[0] will contain the full URL with parentheses (don't want)
+                        $imageLinks = $matches[1];
+                        echo $allImageLinks;
+                        echo $imageLinks;
+                        for($i = 0; $i < count($imageLinks); $i++) {
+                            $image = file_get_contents($imageLinks[$i]);
+                            $imageFileName = $genera . "_" . $i . ".jpg";
+                            $imageFolderPath = $upload_directory . $genera . "/Figure_Caption/";
+                            if(!makeUploadDir($imageFolderPath)) {
+                                echo "<br>Failed to create upload directory for images.";
+                                continue;
+                            }
+                            $imagePath = $imageFolderPath . $imageFileName;
+                            if (file_put_contents($imagePath, $image)) {
+                                echo "<br>Downloaded image from $imageLinks[$i] and saved as $imagePath";
+                            } else {
+                                echo "<br>Failed to download image from $imageLinks[$i]";
+                            }
+                        }
+
                     }
                     echo "<br>Done parsing.<br>";
                     echo "<br>These are the stages we could not convert:<br>";
@@ -231,4 +271,16 @@ function standardizeGeologicalStage($stage, $geologicalStages)
     }
     return null;
 }
+
+function isInvalidEscapeRow($colIdx, $escaped_row) {
+    if (!isset($escaped_row[$colIdx])) {
+        return -1;
+    }
+    if ($escaped_row[$colIdx] == "NULL" || empty(trim($escaped_row[$colIdx])) || str_starts_with($escaped_row[$colIdx], "'pg.") || str_starts_with($escaped_row[$colIdx], "'p.") || $escaped_row[$colIdx] == "' '") {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
 ?>

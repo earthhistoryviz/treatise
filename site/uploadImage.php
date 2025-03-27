@@ -38,13 +38,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["image"])) {
         echo "The file is not an image.";
         exit;
     }
+
     $baseUploadDirectory = "/app/uploads/";
     $uploadDirectory = $baseUploadDirectory . $genera . "/" . $type . "/";
-    if (!is_dir($uploadDirectory)) {
-        mkdir($uploadDirectory, 0755, true);
-        $chownCommand = "chown www-data:www-data " . escapeshellarg($uploadDirectory);
-        shell_exec($chownCommand);
+    if (!makeUploadDir($uploadDirectory)) {
+        echo "An error occurred while creating the upload directory.";
+        exit;
     }
+
     $fileName = $file["name"];
     $destination = $uploadDirectory . $fileName;
     if (move_uploaded_file($file["tmp_name"], $destination)) {
@@ -56,4 +57,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["image"])) {
     } else {
         echo "An error occurred during the file upload.";
     }
+}
+
+function makeUploadDir($uploadDirectory) {
+    if (!is_dir($uploadDirectory)) {
+        mkdir($uploadDirectory, 0755, true);
+        $chownCommand = "chown www-data:www-data " . escapeshellarg($uploadDirectory);
+        shell_exec($chownCommand);
+    }
+    return true;
 }

@@ -1,8 +1,8 @@
 <?php
 
-header("Access-Control-Allow-Origin: http://localhost:5173");
-header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
+// header("Access-Control-Allow-Origin: http://localhost:5173");
+// header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+// header("Access-Control-Allow-Headers: Content-Type, Authorization");
 
 function loadEnv($filePath)
 {
@@ -32,7 +32,7 @@ function fetchDataFromApi($url)
     return $response;
 }
 
-function sendDatapackToTsconline($datapack, $url, $token, $oldestTime, $mostRecentTime) {
+function sendDatapackToTsconline($datapack, $url, $token, $oldestTime, $mostRecentTime, $siteUrlTreatise) {
     $ch = curl_init();
     $postFields = [];
     $tempFilePath = tempnam(sys_get_temp_dir(), 'datapack_');
@@ -40,11 +40,11 @@ function sendDatapackToTsconline($datapack, $url, $token, $oldestTime, $mostRece
     $cfile = new CURLFile($tempFilePath, 'text/plain', 'datapack.txt');
     $postFields['datapack'] = $cfile;
     // Calculate hash of the datapack for the title, then append oldest time and newest time
-    $datapackHash = hash('sha256', $datapack). "-$oldestTime-$mostRecentTime";
+    $datapackHash = hash('sha256', $datapack). "-$oldestTime-$mostRecentTime-$siteUrlTreatise";
     $postFields['title'] = $datapackHash;
     $postFields['description'] = 'Datapack generated via Treatise API';
     $postFields['authoredBy'] = 'Treatise';
-    $postFields['isPublic'] = 'false';
+    $postFields['isPublic'] = 'true';
     $postFields['type'] = 'treatise';
     $postFields['uuid'] = 'treatise';
     $postFields['references'] = json_encode([]);
@@ -71,8 +71,8 @@ function sendDatapackToTsconline($datapack, $url, $token, $oldestTime, $mostRece
 
 try {
     $siteUrlTreatise = $_SERVER['SERVER_NAME'];
-    // $url = "https://$siteUrlTreatise.treatise.geolex.org/searchAPI.php";
-    $url = "http://localhost:80/searchAPI.php";
+    $url = "https://$siteUrlTreatise.treatise.geolex.org/searchAPI.php";
+    // $url = "http://localhost:80/searchAPI.php";
     $fetchDataAPIResponse = fetchDataFromApi($url);
 
     // Decode JSON response
@@ -147,29 +147,29 @@ try {
     $datapack = "format version:\t1.3\n";
     $datapack .= "date:\t" . "11/20/24" . "\n\n";
 
-    $datapack .= "Total-Genera\tpoint\t200\t24/156/243\n";
+    $datapack .= "Total-Genera $siteUrlTreatise\tpoint\t200\t24/156/243\n";
     $datapack .= "rect\tline\tnofill\t$min_total\t$max_total\tsmoothed\n";
     foreach ($timeBlocks as $time) {
         $datapack .= "\t$time\t" . $counts[$time]['Total'] . "\n";
     }
     $datapack .= "\n";
 
-    $datapack .= "New-Genera\tpoint\t200\t161/205/103\n";
+    $datapack .= "New-Genera $siteUrlTreatise\tpoint\t200\t161/205/103\n";
     $datapack .= "rect\tline\tnofill\t$min_new\t$max_new\tsmoothed\n";
     foreach ($timeBlocks as $time) {
         $datapack .= "\t$time\t" . $counts[$time]['New'] . "\n";
     }
     $datapack .= "\n";
 
-    $datapack .= "Extinct-Genera\tpoint\t200\t255/0/0\n";
+    $datapack .= "Extinct-Genera $siteUrlTreatise\tpoint\t200\t255/0/0\n";
     $datapack .= "rect\tline\tnofill\t$min_extinct\t$max_extinct\tsmoothed\n";
     foreach ($timeBlocks as $time) {
         $datapack .= "\t$time\t" . $counts[$time]['Extinct'] . "\n";
     }
 
     // Prepare to send datapack to TSConline
-    $tsconlineUrl = "http://host.docker.internal:3000/external-chart"; // TSC local backend
-    // $tsconlineUrl = "http://localhost:5173/GenerateExternalChart"; // TSC local frontend
+    // $tsconlineUrl = "http://host.docker.internal:3000/external-chart"; // TSC local backend
+    $tsconlineUrl = "https://pr-preview.geolex.org/external-chart";
     // http://host.docker.internal:5173/GenerateExternalChart // local
     // https://dev.timescalecreator.org/externalChart // dev
     // https://tsconline.timescalecreator.org//externalChart // prod
@@ -200,7 +200,7 @@ try {
         throw new Exception("No valid fossil counts found for the most recent time.");
     }
 
-    $response = sendDatapackToTsconline($datapack, $tsconlineUrl, $token, $oldestTime, $recentTime);
+    $response = sendDatapackToTsconline($datapack, $tsconlineUrl, $token, $oldestTime, $recentTime, $siteUrlTreatise);
     $responseDecoded = json_decode($response, true);
     if (!isset($responseDecoded['hash'])) {
         throw new Exception("Invalid response from TSConline: $response");
@@ -208,7 +208,9 @@ try {
 
     try {
         $datapackHash = $responseDecoded['hash'];
-        $tsconlineUrl = "http://localhost:5173/generate-external-chart?hash=" . urlencode($datapackHash);
+        // $tsconlineUrl = "http://localhost:5173/generate-external-chart?hash=" . urlencode($datapackHash);
+        $tsconlineUrl = "https://pr-preview.geolex.org/generate-external-chart?hash=" . urlencode($datapackHash);
+        
         header("Location: $tsconlineUrl");
         exit;
     } catch (Exception $e) {
