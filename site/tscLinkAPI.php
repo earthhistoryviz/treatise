@@ -32,16 +32,15 @@ function fetchDataFromApi($url)
     return $response;
 }
 
-function sendDatapackToTsconline($datapack, $url, $token, $oldestTime, $mostRecentTime, $siteUrlTreatise) {
+function sendDatapackToTsconline($datapack, $url, $token, $siteUrlTreatise) {
+    $datapackHash = hash('sha256', $datapack);
     $ch = curl_init();
     $postFields = [];
     $tempFilePath = tempnam(sys_get_temp_dir(), 'datapack_');
     file_put_contents($tempFilePath, $datapack);
-    $cfile = new CURLFile($tempFilePath, 'text/plain', 'datapack.txt');
+    $cfile = new CURLFile($tempFilePath, 'text/plain', $datapackHash . '.txt');
     $postFields['datapack'] = $cfile;
-    // Calculate hash of the datapack for the title, then append oldest time and newest time
-    $datapackHash = hash('sha256', $datapack). "-$oldestTime-$mostRecentTime-$siteUrlTreatise";
-    $postFields['title'] = $datapackHash;
+    $postFields['title'] = $siteUrlTreatise;
     $postFields['description'] = 'Datapack generated via Treatise API';
     $postFields['authoredBy'] = 'Treatise';
     $postFields['isPublic'] = 'true';
@@ -55,7 +54,9 @@ function sendDatapackToTsconline($datapack, $url, $token, $oldestTime, $mostRece
     curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        "Authorization: Bearer $token"
+        "Authorization: Bearer $token",
+        "Phylum: $siteUrlTreatise",
+        "datapackHash: $datapackHash"
     ]);
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -68,6 +69,7 @@ function sendDatapackToTsconline($datapack, $url, $token, $oldestTime, $mostRece
 
     return $response;
 }
+
 
 try {
     $siteUrlTreatise = $_SERVER['SERVER_NAME'];
@@ -147,21 +149,21 @@ try {
     $datapack = "format version:\t1.3\n";
     $datapack .= "date:\t" . "11/20/24" . "\n\n";
 
-    $datapack .= "Total-Genera $siteUrlTreatise\tpoint\t200\t24/156/243\n";
+    $datapack .= "Total-Genera $siteUrlTreatise\tpoint\t200\t255/255/255\n";
     $datapack .= "rect\tline\tnofill\t$min_total\t$max_total\tsmoothed\n";
     foreach ($timeBlocks as $time) {
         $datapack .= "\t$time\t" . $counts[$time]['Total'] . "\n";
     }
     $datapack .= "\n";
 
-    $datapack .= "New-Genera $siteUrlTreatise\tpoint\t200\t161/205/103\n";
+    $datapack .= "New-Genera $siteUrlTreatise\tpoint\t200\t255/255/255\n";
     $datapack .= "rect\tline\tnofill\t$min_new\t$max_new\tsmoothed\n";
     foreach ($timeBlocks as $time) {
         $datapack .= "\t$time\t" . $counts[$time]['New'] . "\n";
     }
     $datapack .= "\n";
 
-    $datapack .= "Extinct-Genera $siteUrlTreatise\tpoint\t200\t255/0/0\n";
+    $datapack .= "Extinct-Genera $siteUrlTreatise\tpoint\t200\t255/255/255\n";
     $datapack .= "rect\tline\tnofill\t$min_extinct\t$max_extinct\tsmoothed\n";
     foreach ($timeBlocks as $time) {
         $datapack .= "\t$time\t" . $counts[$time]['Extinct'] . "\n";
@@ -200,17 +202,17 @@ try {
         throw new Exception("No valid fossil counts found for the most recent time.");
     }
 
-    $response = sendDatapackToTsconline($datapack, $tsconlineUrl, $token, $oldestTime, $recentTime, $siteUrlTreatise);
+    $response = sendDatapackToTsconline($datapack, $tsconlineUrl, $token, $siteUrlTreatise);
     $responseDecoded = json_decode($response, true);
-    if (!isset($responseDecoded['hash'])) {
+    if (!isset($responseDecoded['phylum'])) {
         throw new Exception("Invalid response from TSConline: $response");
     }
 
     try {
-        $datapackHash = $responseDecoded['hash'];
-        // $tsconlineUrl = "http://localhost:5173/generate-external-chart?hash=" . urlencode($datapackHash);
-        $tsconlineUrl = "https://pr-preview.geolex.org/generate-external-chart?hash=" . urlencode($datapackHash);
-        
+        $datapackPhylum = $responseDecoded['phylum'];
+        // $tsconlineUrl = "http://localhost:5173/generate-external-chart?phylum=" . urlencode($datapackPhylum) . "&chartInfo=" . $oldestTime . "-" . $recentTime . "-" . $min_total . "-" . $max_total . "-" . $min_new . "-" . $max_new . "-" . $min_extinct . "-" . $max_extinct;
+        // $tsconlineUrl = "https://pr-preview.geolex.org/generate-external-chart?phylum=" . urlencode($datapackHash) . "chartInfo=" . $oldestTime . $recentTime . $siteUrlTreatise . $min_total . $max_total . $min_new . $max_new . $min_extinct . $max_extinct;
+        $tsconlineUrl = "https://pr-preview.geolex.org/generate-external-chart?phylum=" . urlencode($datapackPhylum) . "&chartInfo=" . $oldestTime . "-" . $recentTime . "-" . $min_total . "-" . $max_total . "-" . $min_new . "-" . $max_new . "-" . $min_extinct . "-" . $max_extinct;
         header("Location: $tsconlineUrl");
         exit;
     } catch (Exception $e) {
