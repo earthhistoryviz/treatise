@@ -52,12 +52,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                         // In the excel file, change the beginning and ending stages to First_Occurrence and Last_Occurrence
                         $baseStage = ucwords(trim(trim($escaped_row[$excelColumnNamesWithIndexes['First_Occurrence']], "'\"")));
                         if (!$baseStage || $baseStage === "NULL") {
-                            echo "<br>Skipping $genera with empty First Occurrence.";
+                            echo "Skipping $genera with empty First Occurrence.<br>";
                             continue;
                         }
                         $topStage = ucwords(trim(trim($escaped_row[$excelColumnNamesWithIndexes['Last_Occurrence']], "'\"")));
                         if (!$topStage || $topStage === "NULL") {
-                            echo "<br>Skipping $genera with empty Last Occurrence.";
+                            echo "Skipping $genera with empty Last Occurrence.<br>";
                             continue;
                         }
                         // Now do calculations about age here, geological stages in $geologicalStages
@@ -159,33 +159,49 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                         if ($conn->query($sqlInsert) !== true) {
                             echo "<br>Error inserting data into fossil database: " . $conn->error . ". Ignoring this row and continuing.<br>";
                         } else {
-                            echo "<br>Inserted genera <b>$genera</b> into database.<br>";
+                            echo "<br>Inserted genera <b>$genera</b> into database.";
                         }
 
                         // Add images to upload directory based on links in URL
                         $allImageLinks = $escaped_row[$excelColumnNamesWithIndexes['figure_link']];
+                        $allFigureCaptionsRaw = $escaped_row[$excelColumnNamesWithIndexes['figure_index']];
+                        // split the figure captions by new line
+                        $allFigureCaptions = str_replace(['\\r\\n', '\\n', '\\r'], "\n", $allFigureCaptionsRaw);
+                        $figureCaptions = preg_split("/\r\n|\n|\r/", trim($allFigureCaptions));
                         // Regular expression to capture URLs inside parentheses
                         preg_match_all('/\((https?:\/\/[^\)]+)\)/', $allImageLinks, $matches);
-                        // Extracted URLs will be in $matches[1], $matches[0] will contain the full URL with parentheses (don't want)
                         $imageLinks = $matches[1];
-                        echo $allImageLinks;
-                        echo $imageLinks;
-                        for($i = 0; $i < count($imageLinks); $i++) {
-                            $image = file_get_contents($imageLinks[$i]);
-                            $imageFileName = $genera . "_" . $i . ".jpg";
-                            $imageFolderPath = $upload_directory . $genera . "/Figure_Caption/";
-                            if(!makeUploadDir($imageFolderPath)) {
-                                echo "<br>Failed to create upload directory for images.";
-                                continue;
-                            }
-                            $imagePath = $imageFolderPath . $imageFileName;
-                            if (file_put_contents($imagePath, $image)) {
-                                echo "<br>Downloaded image from $imageLinks[$i] and saved as $imagePath";
-                            } else {
-                                echo "<br>Failed to download image from $imageLinks[$i]";
+                        // Extracted URLs will be in $matches[1], $matches[0] will contain the full URL with parentheses (don't want)
+                        $imageFolderPath = $upload_directory . $genera . "/Figure_Caption/";
+                        if (!makeUploadDir($imageFolderPath)) {
+                            echo "<br>Failed to create upload directory for images.";
+                        } else {
+                            for ($i = 0; $i < count($imageLinks); $i++) {
+                                $caption = $figureCaptions[$i] ?? "figure_$i";
+                                
+                                $cleanCaption = normalizeCaption($caption);
+                                $imageFileName = $genera . "_" . $cleanCaption . ".jpg";
+                                $imagePath = $imageFolderPath . $imageFileName;
+
+                                if (file_exists($imagePath)) {
+                                    echo "<br>Image already exists for $genera: $imageFileName — skipping download.";
+                                    continue;
+                                }
+
+                                $image = file_get_contents($imageLinks[$i]);
+                                if ($image === false) {
+                                    echo "<br>Failed to fetch image from $imageLinks[$i]";
+                                    continue;
+                                }
+
+                                if (file_put_contents($imagePath, $image)) {
+                                    echo "<br>Downloaded image for $genera: $imageFileName";
+                                } else {
+                                    echo "<br>Failed to save image for $genera";
+                                }
                             }
                         }
-
+                        echo "<br>";
                     }
                     echo "<br>Done parsing.<br>";
                     echo "<br>These are the stages we could not convert:<br>";
@@ -240,6 +256,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
 echo "</div>";
 
 exec("python3 treatise_plots.py", $output, $error);
+
+function normalizeCaption($caption) {
+    // Lowercase, remove parentheses and periods, and convert non-alphanum to underscores
+    $caption = strtolower($caption);
+    $caption = preg_replace('/[^\w\s]/', '', $caption); // Remove punctuation
+    $caption = preg_replace('/\s+/', '_', $caption);    // Replace whitespace with underscores
+    $caption = preg_replace('/_+/', '_', $caption);     // Collapse multiple underscores
+    return trim($caption, '_');                         // Remove leading/trailing _
+}
 
 function standardizeGeologicalStage($stage, $geologicalStages)
 {

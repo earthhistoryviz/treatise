@@ -41,7 +41,7 @@
   $genera = $_GET["genera"];
   $url = "http://localhost/searchAPI.php?searchquery=".urlencode($genera);
   $raw = file_get_contents($url);
-  $fossilData = json_decode($raw, true)[urldecode($genera)];
+  $fossilData = json_decode($raw, true)["data"][urldecode($genera)];
 
   if ($fossilData) { ?>
     <div class="formation-container mt-5">
@@ -111,11 +111,10 @@
               </div>
             </div>
             <div id="Genus" class="horiz" style="text-align: left;">
-              <b>&nbsp;&nbsp;&nbsp;&nbsp;Genus: &nbsp;</b>
+              <b>&nbsp;&nbsp;&nbsp;&nbsp;Formal Genus Name and Reference: &nbsp;</b>
               <div id="Genus">
-                <?= eliminateParagraphs($fossilData["Genus"]) ?>
+                <?= eliminateParagraphs($fossilData["Formal_genus_name_and_reference"]) ?>
               </div>
-              <br><br>
             </div>
             <div id="Type_Species" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Type Species: &nbsp;</b>
@@ -125,17 +124,25 @@
               <br><br>
             </div>
             <h2 class="small-header">Images</h2>
-            <div id="Figure_Caption" class="horiz" style="text-align: left;">
+            <b class="green-text">(Click to enlarge in a new window)</b>
+            <div id="Figure_Caption" class="horiz">
               <div id="Figure_Caption">
                 <?= displayImage("Figure_Caption", $genera)?>
               </div>
-              <b class="green-text">(Click to enlarge in a new window)</b>
             </div>
             <div id="Figure_Caption" class="horiz" style="text-align: left;">
                 <div id="Figure_Caption">
-                  <?= eliminateParagraphs($fossilData["Figure_Caption"]) ?>
+                  <?= eliminateParagraphs($fossilData["Figure_captions"]) ?>
                 </div>
             </div>
+            <br><br>
+            <h2 class="small-header">Synonyms</h2>
+            <div id="Synonyms" class="horiz" style="text-align: left;">
+              <div id="Synonyms">
+                <?= eliminateParagraphs($fossilData["Synonyms"]) ?>
+              </div>
+            </div>
+            <br><br>
             <h2 class="small-header">Geographic Distribution</h2>
             <div id="Geography" class="horiz" style="text-align: left;">
               <div id="Geography">
@@ -147,7 +154,7 @@
             <div id="beginning_stage" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Beginning Stage in Treatise Usage: &nbsp;</b>
               <div id="beginning_stage">
-                <?= eliminateParagraphs($fossilData["First_Occurrence"]) ?>
+                <?= eliminateParagraphs($fossilData["Beginning_age"]) ?>
               </div>
             </div>
             <div id="beginning_stage" class="horiz" style="text-align: left;">
@@ -171,7 +178,7 @@
             <div id="beginning_stage" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Ending Stage in Treatise Usage: &nbsp;</b>
               <div id="beginning_stage">
-                <?= eliminateParagraphs($fossilData["Last_Occurrence"]) ?>
+                <?= eliminateParagraphs($fossilData["Ending_age"]) ?>
               </div>
             </div>
             <div id="ending_stage" class="horiz" style="text-align: left;">
@@ -196,39 +203,22 @@
             <h2 class="small-header">Description</h2>
             <div id="Diagnosis" class="horiz" style="text-align: left;">
               <div id="Diagnosis">
-                <?= eliminateParagraphs($fossilData["Diagnosis"]) ?>
+                <?= eliminateParagraphs($fossilData["Distinguishing_characteristics"]) ?>
               </div>
               <br><br>
             </div>
+            <br><br>
             <h2 class="small-header">References</h2>
-            <div id="Link_to_Treatise_Volume_Genus_Appears_in" class="horiz" style="text-align: left;">
-              <b>&nbsp;&nbsp;&nbsp;&nbsp;Link To Treatise Volume Genus Appears In: &nbsp;</b>
-              <div id="Link_to_Treatise_Volume_Genus_Appears_in">
-                <?= eliminateParagraphs($fossilData["Link_to_Treatise_Volume_Genus_Appears_in"]) ?>
+            <div id="References" class="horiz" style="text-align: left;">
+              <div id="References">
+                <?= eliminateParagraphs($fossilData["Reference_information"]) ?>
               </div>
             </div>
-            <div id="Volume_of_Treatise_Appears_in" class="horiz" style="text-align: left;">
-              <b>&nbsp;&nbsp;&nbsp;&nbsp;Volume Of Treatise Appears In: &nbsp;</b>
-              <div id="Volume_of_Treatise_Appears_in">
-                <?= eliminateParagraphs($fossilData["Volume_of_Treatise_Appears_in"]) ?>
-              </div>
-            </div>
-            <div id="Page_in_Treatise_it_is_on" class="horiz" style="text-align: left;">
-              <b>&nbsp;&nbsp;&nbsp;&nbsp;Page in Treatise It Is On: &nbsp;</b>
-              <div id="Page_in_Treatise_it_is_on">
-                <?= eliminateParagraphs($fossilData["Page_in_Treatise_it_is_on"]) ?>
-              </div>
-            </div>
-            <div id="Author" class="horiz" style="text-align: left;">
-              <b>&nbsp;&nbsp;&nbsp;&nbsp;Author: &nbsp;</b>
-              <div id="Author">
-                <?= eliminateParagraphs($fossilData["Author"]) ?>
-              </div>
-            </div>
-            <div id="Author_Citation" class="horiz" style="text-align: left;">
-              <b>&nbsp;&nbsp;&nbsp;&nbsp;Author Citation: &nbsp;</b>
-              <div id="Author_Citation">
-                <?= eliminateParagraphs($fossilData["Author_Citation"]) ?>
+            <br><br>
+            <h2 class="small-header">Museum or Author Information</h2>
+            <div id="Musem_or_author_information" class="horiz" style="text-align: left;">
+              <div id="Musem_or_author_information">
+                <?= eliminateParagraphs($fossilData["Museum_or_author_information"]) ?>
               </div>
             </div>
           </div>

@@ -1,9 +1,5 @@
 <?php
 
-// header("Access-Control-Allow-Origin: http://localhost:5173");
-// header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
-// header("Access-Control-Allow-Headers: Content-Type, Authorization");
-
 function loadEnv($filePath)
 {
     if (!file_exists($filePath)) {
@@ -72,13 +68,12 @@ function sendDatapackToTsconline($datapack, $url, $token, $siteUrlTreatise) {
 
 
 try {
-    $siteUrlTreatise = $_SERVER['SERVER_NAME'];
+    $siteUrlTreatise = ucfirst(strtolower($_SERVER['SERVER_NAME']));
     $url = "https://$siteUrlTreatise.treatise.geolex.org/searchAPI.php";
-    // $url = "http://localhost:80/searchAPI.php";
     $fetchDataAPIResponse = fetchDataFromApi($url);
 
     // Decode JSON response
-    $data = json_decode($fetchDataAPIResponse, true);
+    $data = json_decode($fetchDataAPIResponse, true)["data"];
     if ($data === null) {
         throw new Exception("Error decoding JSON from API response.");
     }
@@ -149,36 +144,29 @@ try {
     $datapack = "format version:\t1.3\n";
     $datapack .= "date:\t" . "11/20/24" . "\n\n";
 
-    $datapack .= "Total-Genera $siteUrlTreatise\tpoint\t200\t255/255/255\n";
+    $datapack .= "$siteUrlTreatise Total-Genera\tpoint\t200\t255/255/255\n";
     $datapack .= "rect\tline\tnofill\t$min_total\t$max_total\tsmoothed\n";
     foreach ($timeBlocks as $time) {
         $datapack .= "\t$time\t" . $counts[$time]['Total'] . "\n";
     }
     $datapack .= "\n";
-
-    $datapack .= "New-Genera $siteUrlTreatise\tpoint\t200\t255/255/255\n";
+    $datapack .= "$siteUrlTreatise New-Genera\tpoint\t200\t255/255/255\n";
     $datapack .= "rect\tline\tnofill\t$min_new\t$max_new\tsmoothed\n";
     foreach ($timeBlocks as $time) {
         $datapack .= "\t$time\t" . $counts[$time]['New'] . "\n";
     }
     $datapack .= "\n";
 
-    $datapack .= "Extinct-Genera $siteUrlTreatise\tpoint\t200\t255/255/255\n";
+    $datapack .= "$siteUrlTreatise Extinct-Genera\tpoint\t200\t255/255/255\n";
     $datapack .= "rect\tline\tnofill\t$min_extinct\t$max_extinct\tsmoothed\n";
     foreach ($timeBlocks as $time) {
         $datapack .= "\t$time\t" . $counts[$time]['Extinct'] . "\n";
     }
 
-    // Prepare to send datapack to TSConline
-    // $tsconlineUrl = "http://host.docker.internal:3000/external-chart"; // TSC local backend
-    $tsconlineUrl = "https://pr-preview.geolex.org/external-chart";
-    // http://host.docker.internal:5173/GenerateExternalChart // local
-    // https://dev.timescalecreator.org/externalChart // dev
-    // https://tsconline.timescalecreator.org//externalChart // prod
+    $tsconlineUrl = "https://dev.timescalecreator.org/external-chart";
+
     try {
-        $envFilePath = __DIR__ . '/.env';
-        $envVars = loadEnv($envFilePath);
-        $token = $envVars['BEARER_TOKEN'] ?? null;
+        $token = getenv("BEARER_TOKEN");
         if (!$token) {
             throw new Exception("BEARER_TOKEN not set in the .env file.");
         }
@@ -210,9 +198,7 @@ try {
 
     try {
         $datapackPhylum = $responseDecoded['phylum'];
-        // $tsconlineUrl = "http://localhost:5173/generate-external-chart?phylum=" . urlencode($datapackPhylum) . "&chartInfo=" . $oldestTime . "-" . $recentTime . "-" . $min_total . "-" . $max_total . "-" . $min_new . "-" . $max_new . "-" . $min_extinct . "-" . $max_extinct;
-        // $tsconlineUrl = "https://pr-preview.geolex.org/generate-external-chart?phylum=" . urlencode($datapackHash) . "chartInfo=" . $oldestTime . $recentTime . $siteUrlTreatise . $min_total . $max_total . $min_new . $max_new . $min_extinct . $max_extinct;
-        $tsconlineUrl = "https://pr-preview.geolex.org/generate-external-chart?phylum=" . urlencode($datapackPhylum) . "&chartInfo=" . $oldestTime . "-" . $recentTime . "-" . $min_total . "-" . $max_total . "-" . $min_new . "-" . $max_new . "-" . $min_extinct . "-" . $max_extinct;
+        $tsconlineUrl = "https://dev.timescalecreator.org/generate-external-chart?phylum=" . urlencode($datapackPhylum) . "&chartInfo=" . $oldestTime . "-" . $recentTime . "-" . $min_total . "-" . $max_total . "-" . $min_new . "-" . $max_new . "-" . $min_extinct . "-" . $max_extinct;
         header("Location: $tsconlineUrl");
         exit;
     } catch (Exception $e) {
