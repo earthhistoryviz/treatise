@@ -1,0 +1,20 @@
+version: '3'
+services: 
+
+  dev: 
+    build: .
+    restart: always
+    container_name: dev
+    ports:
+      - "5100:80"
+    expose:
+      - 80
+    volumes: 
+      - ./site:/app
+      - .:/code
+      - ./run.sh:/run.sh
+      - dev_mysqldata:/var/lib/mysql
+      - ./resources/pygplates_config:/app/pygplates/config
+
+volumes:
+  dev_mysqldata:

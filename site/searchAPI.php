@@ -1,7 +1,7 @@
 <?php
 
 include_once("SqlConnection.php");
-$searchquery = $_GET['searchquery'];
+$rawSearch = $_GET['searchquery'];
 $classfilter = $_GET['classfilter'];
 $orderfilter = $_GET['orderfilter'];
 $geographyfilter = $_GET['geographyfilter'];
@@ -10,6 +10,7 @@ $agefilterstart = $_GET['agefilterstart'];
 $agefilterend = $_GET['agefilterend'];
 $periodfilter = $_GET['periodfilter'];
 $genusOnly = $_GET['genusOnly'];
+$addSynonyms = $_GET['addSynonyms'];
 
 if (!isset($_GET['agefilterend']) || $agefilterend == "" || $agefilterstart < $agefilterend) {
     $agefilterend = $agefilterstart;
@@ -27,7 +28,7 @@ if (!$orderfilter || $orderfilter == "All") {
     $orderfilter = "";
 }
 
-$searchquery = '%' . $searchquery . '%';
+$searchquery = '%' . $rawSearch . '%';
 $geographyfilter = '%' . $geographyfilter . '%';
 $stagefilter = '%' . $stagefilter . '%';
 $classfilter = '%' . $classfilter . '%';
@@ -39,6 +40,10 @@ $orderfilter = '%' . $orderfilter . '%';
 // we use it in searchAPI.php to define all columns that will be returned in the JSON response
 if ($genusOnly == "true") {
     $allColumnNames = ["Genus"];
+}
+
+if ($addSynonyms == "true") {
+    $allColumnNames = array_merge($allColumnNames, ["Synonyms"]);
 }
 
 $sql = "SELECT * FROM fossil WHERE Genus LIKE ? AND geography LIKE ? AND beginning_stage LIKE ?";
@@ -77,8 +82,24 @@ if (!$stmt->execute()) {
 }
 
 $result = $stmt->get_result();
-header("Content-Type: application/json");
-$arr = array();
+
+$isSynonym = false;
+if (!empty($rawSearch) && ($result == false || mysqli_num_rows($result) == 0)) {
+    $sql = preg_replace('/SELECT \* FROM fossil WHERE Genus LIKE/', 'SELECT * FROM fossil WHERE Synonyms LIKE', $sql);
+
+    $stmt = $conn->prepare($sql);
+    if ($stmt === false) {
+        die("Error preparing statement: " . $conn->error);
+    }
+    call_user_func_array([$stmt, 'bind_param'], $params);
+    if (!$stmt->execute()) {
+        die("Error executing query: " . $stmt->error);
+    }
+    $result = $stmt->get_result();
+    $isSynonym = true;
+}
+
+$arr = [];
 while ($row = $result->fetch_assoc()) {
     $rowData = [];
     foreach ($allColumnNames as $columnName) {
@@ -91,4 +112,8 @@ while ($row = $result->fetch_assoc()) {
     $arr[$genus] = $rowData;
 }
 $conn->close();
-echo json_encode($arr);
+header("Content-Type: application/json");
+echo json_encode([
+    "data" => $arr,
+    "isSynonym" => $isSynonym
+]);

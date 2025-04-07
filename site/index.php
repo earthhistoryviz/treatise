@@ -35,7 +35,10 @@
         ."&agefilterstart=".$_GET["agefilterstart"]
         ."&agefilterend=".$_GET["agefilterend"];
         $raw = file_get_contents($url);
-        $response = json_decode($raw, true);
+        $rawResponse = json_decode($raw, true);
+        $response = $rawResponse["data"];
+        $isSynonym = $rawResponse["isSynonym"];
+
         if ($response) {
             // Sorting logic based on button clicked
             if (isset($_POST['sortAlphabetically'])) {
@@ -69,24 +72,27 @@
           </div>
 
           <?php
-            // Grouping logic if toggle is on
-            if ($isGrouped) {
-                // Group fossils by Class and then by Order
-                $groupedFossils = [];
-                foreach ($response as $item) {
-                    $class = $item['Class'] ?? 'Unknown Class';
-                    $order = $item['Order'] ?? 'Unknown Order';
+          if ($isSynonym) { ?>
+              <h4 style='text-align: center;'>No genera with name "<?= htmlspecialchars($searchTerm) ?>"" was found. However, "<?= htmlspecialchars($searchTerm) ?>" was found in the Synonyms field.</h4>
+              <br><br>
+            <?php }
 
-                    if (!isset($groupedFossils[$class])) {
-                        $groupedFossils[$class] = [];
-                    }
-                    if (!isset($groupedFossils[$class][$order])) {
-                        $groupedFossils[$class][$order] = [];
-                    }
-                    $groupedFossils[$class][$order][] = $item;
-                }
-                ?>
+          // Grouping logic if toggle is on
+          if ($isGrouped) {
+              // Group fossils by Class and then by Order
+              $groupedFossils = [];
+              foreach ($response as $item) {
+                  $class = $item['Class'] ?? 'Unknown Class';
+                  $order = $item['Order'] ?? 'Unknown Order';
 
+                  if (!isset($groupedFossils[$class])) {
+                      $groupedFossils[$class] = [];
+                  }
+                  if (!isset($groupedFossils[$class][$order])) {
+                      $groupedFossils[$class][$order] = [];
+                  }
+                  $groupedFossils[$class][$order][] = $item;
+              } ?>
             <div class="accordion" id="classAccordion">
               <?php foreach ($groupedFossils as $class => $orders): ?>
                 <div class="accordion-item">
@@ -159,10 +165,11 @@
         </div>
         <script>
           async function fetchData() {
-            const url = "https://<?=$_SERVER['HTTP_HOST']?>.treatise.geolex.org/searchAPI.php";
+            const url = "https://<?= $_SERVER['HTTP_HOST'] ?>.treatise.geolex.org/searchAPI.php";
             try {
               const response = await fetch(url);
-              const data = await response.json();
+              const data = (await response.json())["data"];
+
               const processedData = [];
               let min_new = Number.MAX_SAFE_INTEGER;
               let max_new = Number.MIN_SAFE_INTEGER;
@@ -253,6 +260,7 @@
                   datapack += `\t${timeBlocks[i]}\t${sortedCounts[timeBlocks[i]].Extinct}\n`;
               }
 
+              console.log(datapack);
               const blob = new Blob([datapack], { type: 'text/plain' });
               const link = document.createElement('a');
               link.href = URL.createObjectURL(blob);

@@ -78,7 +78,7 @@ if ($conn->query($sql4) == true && $conn->query($sql3) === true) {
 }
 
 include_once("SimpleXLSX.php");
-$xlsx = SimpleXLSX::parse("Brachiopod.xlsx");
+$xlsx = SimpleXLSX::parse("Graptolite.xlsx");
 $columns = [];
 if ($xlsx === false) {
     echo "\nCan't open excel file.";
@@ -91,6 +91,8 @@ if ($xlsx === false) {
         }
     }
     //Create columns for CREATE TABLE statement
+    // In the excel file, change the beginning and ending stages to First_Occurrence and Last_Occurrence
+    // Otherwise uploadExcel.php will not work
     $sqlCreate = "CREATE TABLE fossil (ID int NOT NULL AUTO_INCREMENT PRIMARY KEY,";
     foreach ($columns as $column) {
         if ($column == "Genus") {
