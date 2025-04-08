@@ -78,7 +78,7 @@ if ($conn->query($sql4) == true && $conn->query($sql3) === true) {
 }
 
 include_once("SimpleXLSX.php");
-$xlsx = SimpleXLSX::parse("Graptolite.xlsx");
+$xlsx = SimpleXLSX::parse($argv[1]);
 $columns = [];
 if ($xlsx === false) {
     echo "\nCan't open excel file.";

@@ -5,10 +5,9 @@ Prettier Command: docker run -it --rm -v $(pwd):/code ghcr.io/php-cs-fixer/php-c
 
 The steps to actually upload are as follows
     - Upload excel file into the db folder
-    - In db/create_db.php, change the file where it says something like $xlsx = SimpleXLSX::parse("updatedammonoids.xlsx"); to be your new file name
     - exec into the docer container via `docker compose exec <service_name> bash` inside of aaron/live
         - you can find service name via the docker-compose file inside of live
-    - Once execed, cd code/db then run php create_db.php
+    - Once execed, cd code/db then run php create_db.php <excel file name>
     - Now go to the site you want and login, then upload the excel file again. If issues occur, see below
 
 Additional notes for uploading excel files: 
