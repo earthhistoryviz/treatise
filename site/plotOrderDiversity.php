@@ -89,7 +89,7 @@
             $filterType = ($selectedGroupingType == 'Class') ? 'classfilter' : 'orderfilter';
             $apiUrl = "https://{$_SERVER['HTTP_HOST']}.treatise.geolex.org/searchAPI.php?$filterType=" . urlencode($currentGrouping);
             $response = file_get_contents($apiUrl);
-            $data = json_decode($response, true);
+            $data = json_decode($response, true)["data"];
 
             // Process the data to determine min and max dates
             $processedData = [];
