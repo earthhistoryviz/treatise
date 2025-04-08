@@ -5,3 +5,4 @@ site/*.png
 db/*.xlsx
 .php-cs-fixer.cache
 .env
+!site/treeIMG.png
