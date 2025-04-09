@@ -163,7 +163,7 @@ try {
         $datapack .= "\t$time\t" . $counts[$time]['Extinct'] . "\n";
     }
 
-    $tsconlineUrl = "https://dev.timescalecreator.org/external-chart";
+    $tsconlineUrl = "https://tsconline.timescalecreator.org/external-chart";
 
     try {
         $token = getenv("BEARER_TOKEN");
@@ -198,7 +198,7 @@ try {
 
     try {
         $datapackPhylum = $responseDecoded['phylum'];
-        $tsconlineUrl = "https://dev.timescalecreator.org/generate-external-chart?phylum=" . urlencode($datapackPhylum) . "&chartInfo=" . $oldestTime . "-" . $recentTime . "-" . $min_total . "-" . $max_total . "-" . $min_new . "-" . $max_new . "-" . $min_extinct . "-" . $max_extinct;
+        $tsconlineUrl = "https://tsconline.timescalecreator.org/generate-external-chart?phylum=" . urlencode($datapackPhylum) . "&chartInfo=" . $oldestTime . "-" . $recentTime . "-" . $min_total . "-" . $max_total . "-" . $min_new . "-" . $max_new . "-" . $min_extinct . "-" . $max_extinct;
         header("Location: $tsconlineUrl");
         exit;
     } catch (Exception $e) {
