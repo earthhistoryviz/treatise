@@ -66,7 +66,6 @@ function sendDatapackToTsconline($datapack, $url, $token, $siteUrlTreatise) {
     return $response;
 }
 
-
 try {
     $siteUrlTreatise = ucfirst(strtolower($_SERVER['SERVER_NAME']));
     $url = "https://$siteUrlTreatise.treatise.geolex.org/searchAPI.php";
