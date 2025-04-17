@@ -63,6 +63,9 @@ function sendDatapackToTsconline($datapack, $url, $token, $siteUrlTreatise) {
         throw new Exception("Error communicating with TSConline. HTTP Code: $httpCode. Response: $response");
     }
 
+    // $logFilePath = __DIR__ . '/datapack.log';
+    // file_put_contents($logFilePath, $datapack, FILE_APPEND);
+
     return $response;
 }
 
@@ -141,7 +144,7 @@ try {
 
     // Prepare the data pack format
     $datapack = "format version:\t1.3\n";
-    $datapack .= "date:\t" . "11/20/24" . "\n\n";
+    $datapack .= "date:\t" . "4/16/25" . "\n\n";
 
     $datapack .= "$siteUrlTreatise Total-Genera\tpoint\t200\t255/255/255\n";
     $datapack .= "rect\tline\tnofill\t$min_total\t$max_total\tsmoothed\n";
@@ -162,7 +165,8 @@ try {
         $datapack .= "\t$time\t" . $counts[$time]['Extinct'] . "\n";
     }
 
-    $tsconlineUrl = "https://tsconline.timescalecreator.org/external-chart";
+    // $tsconlineUrl = "https://tsconline.timescalecreator.org/external-chart";
+    $tsconlineUrl = "https://dev.timescalecreator.org/external-chart";
 
     try {
         $token = getenv("BEARER_TOKEN");
@@ -197,7 +201,8 @@ try {
 
     try {
         $datapackPhylum = $responseDecoded['phylum'];
-        $tsconlineUrl = "https://tsconline.timescalecreator.org/generate-external-chart?phylum=" . urlencode($datapackPhylum) . "&chartInfo=" . $oldestTime . "-" . $recentTime . "-" . $min_total . "-" . $max_total . "-" . $min_new . "-" . $max_new . "-" . $min_extinct . "-" . $max_extinct;
+        // $tsconlineUrl = "https://tsconline.timescalecreator.org/generate-external-chart?phylum=" . urlencode($datapackPhylum) . "&chartInfo=" . $oldestTime . "-" . $recentTime . "-" . $min_total . "-" . $max_total . "-" . $min_new . "-" . $max_new . "-" . $min_extinct . "-" . $max_extinct;
+        $tsconlineUrl = "https://dev.timescalecreator.org/generate-external-chart?phylum=" . urlencode($datapackPhylum) . "&chartInfo=" . $oldestTime . "-" . $recentTime . "-" . $min_total . "-" . $max_total . "-" . $min_new . "-" . $max_new . "-" . $min_extinct . "-" . $max_extinct;
         header("Location: $tsconlineUrl");
         exit;
     } catch (Exception $e) {
