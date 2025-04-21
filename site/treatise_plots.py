@@ -224,7 +224,77 @@ def plot_data(total_genera, new_genera, extinct_genera, filtered_out):
         ax3.text(text_x, stage_y_position + dynamic_height / 2, stage[0], ha='center', va='center', color='black', fontsize=12)
     fig3.savefig('extinct_genera.png')
 
+def save_data_to_csv(total_genera, new_genera, extinct_genera):
+    # Save Total Genera data to CSV (0 to 500)
+    total_genera_csv = total_genera[['date', 'total_genera']].iloc[::-1]
+    total_genera_csv.to_csv('Atotal_genera.csv', index=False)
+    
+    # Save New Genera data to CSV (0 to 500)
+    new_genera_csv = new_genera[['beginning_date', 'new_genera']].iloc[::-1]
+    new_genera_csv.to_csv('Anew_genera.csv', index=False)
+    
+    # Save Extinct Genera data to CSV (0 to 500)
+    extinct_genera_csv = extinct_genera[['ending_date', 'extinct_genera']].iloc[::-1]
+    extinct_genera_csv.to_csv('Aextinct_genera.csv', index=False)
+
+def process_dataV2(df):
+    # df is already sorted by beginning_date in descending order
+    oldest_date = min(int(math.ceil(df['beginning_date'][0] / 5.0) * 5), 750) # ogg wanted us to not include anything oloder than 750 Ma
+    time_bins = np.arange(oldest_date, -1, -5)  # Create bins from oldest_date down to 0, in steps of 5
+    total_genera_map = {i: 0 for i in range(oldest_date, -1, -5)}  # keys from oldest_date down to 0, in steps of 5
+    new_genera_map = {i: 0 for i in range(oldest_date, -1, -5)}
+    extinct_genera_map = {i: 0 for i in range(oldest_date, -1, -5)}
+    filtered_out = 0
+
+    for index, row in df.iterrows():
+        beginning_date = float(row['beginning_date'])
+        ending_date = float(row['ending_date'])
+        if beginning_date > 750 or ending_date > 750:
+            # Might not be ideal thing to do
+            filtered_out += 1
+            continue
+        for time in time_bins:
+            if beginning_date >= time and (ending_date <= time or ending_date == 0):
+                total_genera_map[time] += 1
+            if beginning_date >= time and beginning_date < time + 5:
+                new_genera_map[time] += 1
+            if ending_date > 0 and ending_date >= time and ending_date < time + 5:
+                extinct_genera_map[time] += 1
+        
+    # output_df = pd.DataFrame({
+    #     'TimeBlock': sorted(total_genera_map.keys()),
+    #     'Total': [total_genera_map[t] for t in sorted(total_genera_map.keys())],
+    #     'New': [new_genera_map[t] for t in sorted(new_genera_map.keys())],
+    #     'Extinct': [extinct_genera_map[t] for t in sorted(extinct_genera_map.keys())]
+    # })
+
+    # output_df.to_csv('Aoutput.csv', index=False)
+
+    total_genera = pd.DataFrame({
+        'date': list(total_genera_map.keys()),
+        'total_genera': list(total_genera_map.values())
+    })
+
+    new_genera_grouped = pd.DataFrame({
+        'beginning_date': list(new_genera_map.keys()),
+        'new_genera': list(new_genera_map.values())
+    })
+    new_genera_grouped = new_genera_grouped[new_genera_grouped['new_genera'] > 0]
+
+    extinct_genera_grouped = pd.DataFrame({
+        'ending_date': list(extinct_genera_map.keys()),
+        'extinct_genera': list(extinct_genera_map.values())
+    })
+    extinct_genera_grouped = extinct_genera_grouped[extinct_genera_grouped['extinct_genera'] > 0]
+
+    return total_genera, new_genera_grouped, extinct_genera_grouped, filtered_out
+
+
 if __name__ == "__main__":
     df = fetch_data()
-    total_genera, new_genera, extinct_genera, filtered_out = process_data(df)
+    pd.set_option('display.max_rows', None)
+    pd.set_option('display.max_columns', None)
+    process_dataV2(df)
+    total_genera, new_genera, extinct_genera, filtered_out = process_dataV2(df)
     plot_data(total_genera, new_genera, extinct_genera, filtered_out)
+    # save_data_to_csv(total_genera, new_genera, extinct_genera)

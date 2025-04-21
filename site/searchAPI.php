@@ -46,7 +46,7 @@ if ($addSynonyms == "true") {
     $allColumnNames = array_merge($allColumnNames, ["Synonyms"]);
 }
 
-$sql = "SELECT * FROM fossil WHERE Genus LIKE ? AND geography LIKE ? AND beginning_stage LIKE ?";
+$sql = "SELECT * FROM fossil WHERE Genus LIKE ? AND (geography LIKE ? OR geography IS NULL) AND beginning_stage LIKE ?";
 if ($classfilter == "%%") {
     $sql .= " AND (Class LIKE ? OR Class IS NULL)";
 } else {

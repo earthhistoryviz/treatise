@@ -91,23 +91,28 @@
             $response = file_get_contents($apiUrl);
             $data = json_decode($response, true)["data"];
 
+            // // Dump all genus from data
+            // echo "grouping: " . $currentGrouping . " | <br>";
+            // foreach ($data as $entry) {
+            //     echo $entry['Genus'] . "<br>";
+            // }
+
             // Process the data to determine min and max dates
             $processedData = [];
             foreach ($data as $entry) {
                 $grouping = $entry[$selectedGroupingType];
                 $genus = $entry['Genus'];
-                $beginning_date = (int)$entry['beginning_date'];
-                $ending_date = (int)$entry['ending_date'];
+                $beginning_date = floatval($entry['beginning_date']);
+                $ending_date = floatval($entry['ending_date']);
 
-                if ($beginning_date >= 750) {
+                if ($beginning_date >= 750 || $ending_date >= 750) {
                     $fossilsOlderThan750Ma[] = $entry;
                     continue;
                 }
 
                 // Update min and max dates
-                $min_date = min($min_date, $beginning_date);
+                $min_date = min($min_date, $ending_date);
                 $max_date = max($max_date, $beginning_date);
-
                 $processedData[] = [
                     'Grouping' => $grouping,
                     'Genus' => $genus,
@@ -131,6 +136,8 @@
                         $counts[$time][$grouping] = ['Total' => 0, 'New' => 0, 'Extinct' => 0];
                     }
                     // Count Total Genera Active in the Time Block
+                    // the genus begin time should be oldeer than current time, and the ending time should be less than current time, meaning not yet dead
+                    // or the ending time is 0, meaning it is still alive
                     if ($beginning_date >= $time && ($ending_date <= $time || $ending_date == 0)) {
                         $counts[$time][$grouping]['Total']++;
                     }
@@ -147,7 +154,6 @@
         }
 
         ksort($counts);
-
         // Format the counts into the desired JSON object
         $jsonOutput = ['MinDate' => $min_date, 'MaxDate' => $max_date, 'TimeBlocks' => []];
         foreach ($counts as $time => $grouping) {
@@ -324,6 +330,10 @@
             showlegend: false
         };
 
+        // downloadCSV(totalTraces, 'total_genera.csv');
+        // downloadCSV(newTraces, 'new_genera.csv');
+        // downloadCSV(extinctTraces, 'extinct_genera.csv');
+
         totalTraces.unshift(paddingTrace);
         newTraces.unshift(paddingTrace);
         extinctTraces.unshift(paddingTrace);
@@ -378,6 +388,57 @@
             annotations: annotations,
             legend: {traceorder: 'normal'},
         });
+
+        function downloadCSV(traces, filename) {
+            const rows = [];
+
+            // Create headers, including a column for the total sum
+            const headers = ['TimeBlock'];
+            traces.forEach(trace => headers.push(trace.name));
+            headers.push('TotalSum');  // New column for sum of Total, New, and Extinct
+            rows.push(headers.join(','));
+            
+            let maxLength = 0;
+            let maxTraceIndex = -1;
+
+            traces.forEach((trace, index) => {
+                if (trace.x.length > maxLength) {
+                    maxLength = trace.x.length;
+                    maxTraceIndex = index;
+                }
+            });
+
+
+            for (let i = 0; i < maxLength; i++) {
+                const row = [traces[maxTraceIndex].x[i]]; // Time block
+                let totalSum = 0;
+                // Skip the first trace (paddingTrace) and sum the rest
+                traces.slice(0).forEach(trace => {
+                    const value = trace.y[i];
+                    if (value === undefined) {
+                        row.push(0);
+                    } else {
+                        row.push(value);
+                        totalSum += value; 
+                    }
+
+                });
+
+                row.push(totalSum);
+                rows.push(row.join(','));
+            }
+
+            // Trigger download
+            const csvContent = rows.join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url);
+            a.setAttribute('download', filename);
+            a.click();
+        }
+
+
     </script>
     <?php
     } // End if for selected grouping

@@ -173,16 +173,12 @@
               const processedData = [];
               let min_new = Number.MAX_SAFE_INTEGER;
               let max_new = Number.MIN_SAFE_INTEGER;
-
               let min_extinct = Number.MAX_SAFE_INTEGER;
               let max_extinct = Number.MIN_SAFE_INTEGER;
-
               let min_total = Number.MAX_SAFE_INTEGER;
               let max_total = Number.MIN_SAFE_INTEGER;
-
               let min_count = Number.MAX_SAFE_INTEGER;
               let max_count = Number.MIN_SAFE_INTEGER;
-
               let max_date = Number.MIN_SAFE_INTEGER;
 
               Object.entries(data).forEach(([genus, entry]) => {
@@ -240,27 +236,30 @@
               let datapack = "format version:\t1.3\n";
               datapack += "date:\t" + new Date().toLocaleDateString("en-GB") + "\n\n";
 
-              datapack += "Total-Genera\tpoint\t200\t24/156/243\n";
+              const siteUrlTreatise = "<?= ucfirst(strtolower($_SERVER['SERVER_NAME'])) ?>";
+
+              datapack += `${siteUrlTreatise} Total-Genera\tpoint\t200\t255/255/255\n`;
               datapack += `rect\tline\tnofill\t${min_total}\t${max_total}\tsmoothed\n`;
               for (let i = 0; i < timeBlocks.length; i++) {
                   datapack += `\t${timeBlocks[i]}\t${sortedCounts[timeBlocks[i]].Total}\n`;
               }
               datapack += "\n";
 
-              datapack += "New-Genera\tpoint\t200\t161/205/103\n";
+              datapack += `${siteUrlTreatise} New-Genera\tpoint\t200\t255/255/255\n`;
               datapack += `rect\tline\tnofill\t${min_new}\t${max_new}\tsmoothed\n`;
               for (let i = 0; i < timeBlocks.length; i++) {
                 datapack += `\t${timeBlocks[i]}\t${sortedCounts[timeBlocks[i]].New}\n`;
               }
               datapack += "\n";
 
-              datapack += "Extinct-Genera\tpoint\t200\t255/0/0\n";
+              datapack += `${siteUrlTreatise} Extinct-Genera\tpoint\t200\t255/255/255\n`;
               datapack += `rect\tline\tnofill\t${min_extinct}\t${max_extinct}\tsmoothed\n`;
               for (let i = 0; i < timeBlocks.length; i++) {
                   datapack += `\t${timeBlocks[i]}\t${sortedCounts[timeBlocks[i]].Extinct}\n`;
               }
 
               console.log(datapack);
+              
               const blob = new Blob([datapack], { type: 'text/plain' });
               const link = document.createElement('a');
               link.href = URL.createObjectURL(blob);
