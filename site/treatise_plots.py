@@ -279,13 +279,11 @@ def process_dataV2(df):
         'beginning_date': list(new_genera_map.keys()),
         'new_genera': list(new_genera_map.values())
     })
-    new_genera_grouped = new_genera_grouped[new_genera_grouped['new_genera'] > 0]
 
     extinct_genera_grouped = pd.DataFrame({
         'ending_date': list(extinct_genera_map.keys()),
         'extinct_genera': list(extinct_genera_map.values())
     })
-    extinct_genera_grouped = extinct_genera_grouped[extinct_genera_grouped['extinct_genera'] > 0]
 
     return total_genera, new_genera_grouped, extinct_genera_grouped, filtered_out
 
@@ -296,5 +294,6 @@ if __name__ == "__main__":
     pd.set_option('display.max_columns', None)
     process_dataV2(df)
     total_genera, new_genera, extinct_genera, filtered_out = process_dataV2(df)
+    print(extinct_genera)
     plot_data(total_genera, new_genera, extinct_genera, filtered_out)
     # save_data_to_csv(total_genera, new_genera, extinct_genera)
