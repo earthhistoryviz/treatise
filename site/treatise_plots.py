@@ -294,6 +294,5 @@ if __name__ == "__main__":
     pd.set_option('display.max_columns', None)
     process_dataV2(df)
     total_genera, new_genera, extinct_genera, filtered_out = process_dataV2(df)
-    print(extinct_genera)
     plot_data(total_genera, new_genera, extinct_genera, filtered_out)
     # save_data_to_csv(total_genera, new_genera, extinct_genera)
