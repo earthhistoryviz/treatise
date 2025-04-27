@@ -55,97 +55,85 @@
       } ?>
       <div class="card">
         <div class="card-body">
-          <h2 class="card-title"><?php echo htmlspecialchars(urldecode($genera));?></h5>
-          <?php
-          displayImage("Fossil_Image", $genera);
-      if ($auth) { ?>
-            <form id="imageUploadForm" action="uploadImage.php" method="post" enctype="multipart/form-data">
-            <input type="file" name="image" class="fileInput" id="fileInput<?php echo $uniqueId; ?>" accept="image/*" style="display: none;">
-            <input type="hidden" name="genera" value="<?php echo htmlspecialchars($genera); ?>">
-            <input type="hidden" name="type" value="Fossil_Image">
-            <button type="button" onclick="document.getElementById('fileInput<?php echo $uniqueId; ?>').click();">Choose File</button>
-            <button type="submit" class="btn btn-success">Upload Fossil Image</button>
-            </form> <?php
-      }
-      if ($auth) {
-          $uniqueId = htmlspecialchars($key); ?>
-            <form id="formImageUpload<?php echo $uniqueId; ?>" action="uploadImage.php" method="post" enctype="multipart/form-data">
-              <input type="file" name="image" class="fileInput" id="fileInput<?php echo $uniqueId; ?>" accept="image/*" style="display: none;">
-              <input type="hidden" name="genera" value="<?php echo htmlspecialchars($genera); ?>">
-              <input type="hidden" name="type" value="<?php echo htmlspecialchars($key); ?>">
-              <input type="hidden" name="redirect" value="true">
-              <button type="button" onclick="document.getElementById('fileInput<?php echo $uniqueId; ?>').click();">Choose File</button>
-              <button type="submit" class="btn btn-success">Upload <?= $replaced_key ?> Image</button>
-            </form> <?php
-      } ?>
+          <h2 class="card-title editable-text" id="Genus"><?php echo htmlspecialchars(urldecode($genera));?></h5>
           <div class="card-body">
             <h2 class="small-header">Classification</h2>
             <div id="Phylum" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Phylum: &nbsp;</b>
-              <div id="Phylum">
+              <div id="Phylum" class="editable-text">
                 <?= eliminateParagraphs($fossilData["Phylum"]) ?>
               </div>
             </div>
             <div id="Class" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Class: &nbsp;</b>
-              <div id="Class">
+              <div id="Class" class="editable-text">
                 <?= eliminateParagraphs($fossilData["Class"]) ?>
               </div>
             </div>
             <div id="Order" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Order: &nbsp;</b>
-              <div id="Order">
+              <div id="Order" class="editable-text">
                 <?= eliminateParagraphs($fossilData["Order"]) ?>
               </div>
             </div>
             <div id="Superfamily" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Superfamily: &nbsp;</b>
-              <div id="Superfamily">
+              <div id="Superfamily" class="editable-text">
                 <?= eliminateParagraphs($fossilData["Superfamily"]) ?>
               </div>
             </div>
             <div id="Family" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Family: &nbsp;</b>
-              <div id="Family">
+              <div id="Family" class="editable-text">
                 <?= eliminateParagraphs($fossilData["Family"]) ?>
               </div>
             </div>
             <div id="Genus" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Formal Genus Name and Reference: &nbsp;</b>
-              <div id="Genus">
+              <div id="Genus" class="editable-text">
                 <?= eliminateParagraphs($fossilData["Formal_genus_name_and_reference"]) ?>
               </div>
             </div>
-            <div id="Type_Species" class="horiz" style="text-align: left;">
+            <div id="Type_species" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Type Species: &nbsp;</b>
-              <div id="Type_Species">
+              <div id="Type_species" class="editable-text">
                 <?= eliminateParagraphs($fossilData["Type_species"]) ?>
               </div>
               <br><br>
             </div>
             <h2 class="small-header">Images</h2>
+            <?php
+            if ($auth) { ?>
+              <form id="imageUploadForm" action="uploadImage.php" method="post" enctype="multipart/form-data" style="display: none;">
+                <input type="file" name="image" class="fileInput" id="fileInput<?php echo $uniqueId; ?>" accept="image/*">
+                <input type="hidden" name="genera" value="<?php echo htmlspecialchars($genera); ?>">
+                <input type="hidden" name="type" value="Figure_Caption">
+                <input type="hidden" name="redirect" value="true">
+                <button type="submit" class="btn btn-success">Upload Fossil Image</button>
+              </form> <?php
+            }?>
             <b class="green-text">(Click to enlarge in a new window)</b>
-            <div id="Figure_Caption" class="horiz">
-              <div id="Figure_Caption">
+            <div id="Figure_Image" class="horiz">
+              <div id="Figure_Image"> 
                 <?= displayImage("Figure_Caption", $genera)?>
               </div>
             </div>
-            <div id="Figure_Caption" class="horiz" style="text-align: left;">
-                <div id="Figure_Caption">
+            <div id="Figure_captions" class="horiz" style="text-align: left;">
+                <div id="Figure_captions" class="editable-text">
                   <?= eliminateParagraphs($fossilData["Figure_captions"]) ?>
                 </div>
             </div>
             <br><br>
             <h2 class="small-header">Synonyms</h2>
             <div id="Synonyms" class="horiz" style="text-align: left;">
-              <div id="Synonyms">
+              <div id="Synonyms" class="editable-text">
                 <?= eliminateParagraphs($fossilData["Synonyms"]) ?>
               </div>
             </div>
             <br><br>
             <h2 class="small-header">Geographic Distribution</h2>
             <div id="Geography" class="horiz" style="text-align: left;">
-              <div id="Geography">
+              <div id="Geography" class="editable-text">
                 <?= eliminateParagraphs($fossilData["Geography"]) ?>
               </div>
               <br><br>
@@ -153,71 +141,71 @@
             <h2 class="small-header">Age Range</h2>
             <div id="beginning_stage" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Beginning Stage in Treatise Usage: &nbsp;</b>
-              <div id="beginning_stage">
+              <div id="beginning_stage" class="editable-text">
                 <?= eliminateParagraphs($fossilData["Beginning_age"]) ?>
               </div>
             </div>
             <div id="beginning_stage" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Beginning International Stage: &nbsp;</b>
-              <div id="beginning_stage">
+              <div id="beginning_stage" class="editable-text">
                 <?= eliminateParagraphs($fossilData["beginning_stage"]) ?>
               </div>
             </div>
             <div id="fraction_up_beginning_stage" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Fraction Up In Beginning Stage: &nbsp;</b>
-              <div id="fraction_up_beginning_stage">
+              <div id="fraction_up_beginning_stage" class="editable-text">
                 <?= eliminateParagraphs($fossilData["fraction_up_beginning_stage"]) ?>
               </div>
             </div>
             <div id="beginning_date" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Beginning Date: &nbsp;</b>
-              <div id="beginning_date">
+              <div id="beginning_date" class="editable-text">
                 <?= eliminateParagraphs($fossilData["beginning_date"]) ?>
               </div>
             </div>
             <div id="beginning_stage" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Ending Stage in Treatise Usage: &nbsp;</b>
-              <div id="beginning_stage">
+              <div id="beginning_stage" class="editable-text">
                 <?= eliminateParagraphs($fossilData["Ending_age"]) ?>
               </div>
             </div>
             <div id="ending_stage" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Ending International Stage: &nbsp;</b>
-              <div id="ending_stage">
+              <div id="ending_stage" class="editable-text">
                 <?= eliminateParagraphs($fossilData["ending_stage"]) ?>
               </div>
             </div>
             <div id="fraction_up_ending_stage" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Fraction Up In Ending Stage: &nbsp;</b>
-              <div id="fraction_up_ending_stage">
+              <div id="fraction_up_ending_stage" class="editable-text">
                 <?= eliminateParagraphs($fossilData["fraction_up_ending_stage"]) ?>
               </div>
             </div>
             <div id="ending_date" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Ending Date: &nbsp;</b>
-              <div id="ending_date">
+              <div id="ending_date" class="editable-text">
                 <?= eliminateParagraphs($fossilData["ending_date"]) ?>
               </div>
               <br><br>
             </div>
             <h2 class="small-header">Description</h2>
-            <div id="Diagnosis" class="horiz" style="text-align: left;">
-              <div id="Diagnosis">
+            <div id="Distinguishing_characteristics" class="horiz" style="text-align: left;">
+              <div id="Distinguishing_characteristics" class="editable-text">
                 <?= eliminateParagraphs($fossilData["Distinguishing_characteristics"]) ?>
               </div>
               <br><br>
             </div>
             <br><br>
             <h2 class="small-header">References</h2>
-            <div id="References" class="horiz" style="text-align: left;">
-              <div id="References">
+            <div id="Reference_information" class="horiz" style="text-align: left;">
+              <div id="Reference_information" class="editable-text">
                 <?= eliminateParagraphs($fossilData["Reference_information"]) ?>
               </div>
             </div>
             <br><br>
             <h2 class="small-header">Museum or Author Information</h2>
-            <div id="Musem_or_author_information" class="horiz" style="text-align: left;">
-              <div id="Musem_or_author_information">
+            <div id="Museum_or_author_information" class="horiz" style="text-align: left;">
+              <div id="Museum_or_author_information" class="editable-text">
                 <?= eliminateParagraphs($fossilData["Museum_or_author_information"]) ?>
               </div>
             </div>
@@ -229,109 +217,124 @@
 </div> 
 <?php
 
-function eliminateParagraphs($str)
-{
+function eliminateParagraphs($str) {
     while (preg_match("/<p>.*<\/p>/", $str)) {
         $str = preg_replace("/<p>(.*)<\/p>/", "\\1", $str);
     }
     return $str;
 }
 
-  function displayImage($type, $genera)
-  {
-      $directoryPath = "/app/uploads/$genera/$type";
-      $imagePattern = $directoryPath . "/*.{jpg,png,gif}";
-      $images = glob($imagePattern, GLOB_BRACE);
-      if (!empty($images)) {
-          echo '<br>';
-          foreach ($images as $imagePath) {
-              $imageName = basename($imagePath);
-              $imageUrl = "./uploads/" . htmlspecialchars($genera) . '/' . htmlspecialchars($type) . '/' . htmlspecialchars($imageName);
-              echo '<a href="' . $imageUrl . '" target="_blank"><img style="max-width: 200px; max-height: 200px;" src="' . $imageUrl . '" alt="Fossil Image"></a>';
-          }
+function displayImage($type, $genera) {
+  global $auth;
+
+  $directoryPath = "/app/uploads/$genera/$type";
+  $imagePattern = $directoryPath . "/*.{jpg,png,gif}";
+  $images = glob($imagePattern, GLOB_BRACE);
+  if (!empty($images)) {
+    echo '<br>';
+    foreach ($images as $imagePath) {
+      $imageName = basename($imagePath);
+      $imageUrl = "./uploads/" . htmlspecialchars($genera) . '/' . htmlspecialchars($type) . '/' . htmlspecialchars($imageName);
+      echo '<a href="' . $imageUrl . '" target="_blank"><img style="max-width: 200px; max-height: 200px;" src="' . $imageUrl . '" alt="Fossil Image"></a>';
+      if ($auth) {
+        echo '<button class="btn btn-danger delete-image" style="display: none;" data-id="' . htmlspecialchars($imageName) . '">Delete Image</button>';
       }
+    }
   }
-
-
+}
 
   if ($auth && $fossilData) { ?>
     <script>
       document.addEventListener('DOMContentLoaded', function() {
-        var editButton = document.querySelector('.edit-buttons .btn-primary');
-        var saveButton = document.querySelector('.edit-buttons .btn-success');
-        var deleteButton = document.querySelector('.edit-buttons .btn-danger');
-        var addImageButtons = document.querySelectorAll('.fileInput');
-        var textElements = document.querySelectorAll('.editable-text');
-        var params = new URLSearchParams(window.location.search);
-        var genera = params.get('genera');
-        var deleteImageButton = document.getElementById('deleteImage');
+        const editButton = document.querySelector('.edit-buttons .btn-primary');
+        const saveButton = document.querySelector('.edit-buttons .btn-success');
+        const deleteButton = document.querySelector('.edit-buttons .btn-danger');
+        const imageUploadForm = document.getElementById('imageUploadForm');
+        const textElements = document.querySelectorAll('.editable-text');
+        const params = new URLSearchParams(window.location.search);
+        const genera = params.get('genera');
+        const deleteImageButtons = document.querySelectorAll('.delete-image');
         editButton.addEventListener('click', function() {
           saveButton.removeAttribute('disabled');
           textElements.forEach(function(element) {
-          element.setAttribute('contenteditable', 'true');
+            element.setAttribute('contenteditable', 'true');
           });
           if (textElements.length > 0) {
-          textElements[0].focus();
+            textElements[0].focus();
           }  
-          addImageButtons.forEach(function(button) {
-          button.style.display = 'block';
-          });
-          if (deleteImageButton) {
-          deleteImageButton.style.display = 'block';
-          deleteImageButton.addEventListener('click', function() {
-            if (confirm('Are you sure you want to delete this image?')) {
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', 'deleteImage.php', true);
-            xhr.setRequestHeader('Content-Type', 'text/xml');
-            xhr.send(genera);
-            xhr.onload = function() {
-              if (xhr.status === 200) {
-              console.log("Image deleted successfully");
-              var imageElement = document.getElementById('image');
-              if (imageElement) {
-                imageElement.remove();
-              }
-              } else {
-              console.error("Error deleting image");
-              }
-            };
-            }
-          });
+          if (imageUploadForm) {
+            imageUploadForm.style.display = 'block';
           }
+          deleteImageButtons.forEach(function(button) {
+            button.style.display = 'block';
+            button.addEventListener('click', function() {
+              if (confirm('Are you sure you want to delete this image?')) {
+                const imageName = button.getAttribute('data-id');
+                const formData = new FormData();
+                formData.append('imageName', imageName);
+                formData.append('genera', genera);
+
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', 'deleteImage.php', true);
+                xhr.send(formData);
+                xhr.onload = function() {
+                  if (xhr.status === 200) {
+                    console.log("Image deleted successfully");
+                    const imageElement = button.previousElementSibling;
+                    imageElement.parentNode.removeChild(imageElement);
+                    button.parentNode.removeChild(button);
+                    button.style.display = 'none';
+                  } else {
+                    console.error("Error deleting image");
+                  }
+                };
+              }
+            });
+          });
         });
         saveButton.addEventListener('click', function() {
-          var editedData = [];
+          const editedData = [];
           editedData.unshift({
             columnName: 'Genus',
             content: genera
           });
           textElements.forEach(function(element) {
             editedData.push({
-              columnName: element.getAttribute('data-id'),
+              columnName: element.getAttribute('id'),
               content: element.innerText
             });
             element.setAttribute('contenteditable', 'false');
           });
-          console.log(editedData);
-          var xhr = new XMLHttpRequest();
+          deleteImageButtons.forEach(function(button) {
+            button.style.display = 'none';
+          });
+          imageUploadForm.style.display = 'none';
+          const xhr = new XMLHttpRequest();
           xhr.open('POST', 'saveNewText.php', true);
           xhr.setRequestHeader('Content-Type', 'application/json');
           xhr.send(JSON.stringify(editedData));
           xhr.onload = function() {
             if (xhr.status === 200) {
               console.log("Response from server: \n" + xhr.responseText);
-              addImageButtons.forEach(function(button) {
-                button.style.display = 'block';
-              });
+              //Nyah
+              const genusElement = document.getElementById('Genus');
+              if (genusElement) {
+                const newGenus = genusElement.innerText.trim();
+                if (newGenus !== genera) {
+                  window.location.href = "displayInfo.php?genera=" + encodeURIComponent(newGenus);
+                }
+              }
             } else {
               console.error("Error saving data");
+              console.error("Response from server: " + xhr.responseText);
+              alert("Error saving data. Please refresh the page and try again.");
             }
           };
         });
         deleteButton.addEventListener('click', function() {
-          var userConfirmed = confirm("Are you sure you want to delete this entry?");
+          const userConfirmed = confirm("Are you sure you want to delete this entry?");
           if (userConfirmed) {
-            var xhr = new XMLHttpRequest();
+            const xhr = new XMLHttpRequest();
             xhr.open('POST', 'deleteEntry.php', true);
             xhr.setRequestHeader('Content-Type', 'text/xml');
             xhr.send(genera);

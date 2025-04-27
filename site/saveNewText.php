@@ -17,14 +17,17 @@ foreach ($data as $item) {
             if ($result) {
                 echo "Record with columnName $columnName updated successfully.\n";
             } else {
+                http_response_code(500);
                 echo "Error updating record with columnName $columnName: " . mysqli_error($conn) . "\n";
             }
 
             mysqli_stmt_close($stmt);
         } else {
+            http_response_code(500);
             echo "Error preparing statement: " . mysqli_error($conn) . "\n";
         }
     } else {
+        http_response_code(400);
         echo "Invalid column name: $columnName\n";
     }
 }

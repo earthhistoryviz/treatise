@@ -105,8 +105,9 @@ body {
 }
 
 .editable-text[contenteditable="true"] {
-  border: 1px solid orange;
+  border: 1px solid red;
   background-color: white;
+  min-width: 100px;
 }
 
 .cards {

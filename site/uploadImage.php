@@ -50,7 +50,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["image"])) {
     $destination = $uploadDirectory . $fileName;
     if (move_uploaded_file($file["tmp_name"], $destination)) {
         if ($redirect == "true") {
-            header('location:displayInfo.php?genera=' . $_POST["genera"]);
+            header('location:displayInfo.php?genera=' . $genera);
         } else {
             echo "$fileName uploaded to $destination";
         }
