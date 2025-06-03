@@ -36,7 +36,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                 $previousFamily = "'Unknown'";
                 if ($first_row === $excelColumnNames) {
                     echo "<br>Columns in correct format, parsing...<br>";
+                    $missingStages = [];
                     $unrecognizedStages = [];
+                    $amountOfGeneraUploaded = 0;
+                    $amountOfImagesFound = 0;
+                    $amountOfNewImagesAdded = 0;
+                    $amountOfRowsSkipped = 0;
                     foreach($rows as $row) {
                         //Replace empty strings with NULL and escape strings
                         $escaped_row = array_map(function ($value) use ($conn) {
@@ -46,6 +51,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                         $escaped_row = array_slice($escaped_row, 0, count($excelColumnNames));
                         $genera = trim(ltrim(trim(trim($escaped_row[$excelColumnNamesWithIndexes['Genus']], "'\""), "?")));
                         if ($genera == null || $genera === "NULL") {
+                            echo "Skipping row with empty genera.<br>";
+                            $amountOfRowsSkipped++;
                             continue;
                         }
                         //Get base and top from row parsed in excel file, remove whitespace and double or single quotes
@@ -53,11 +60,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                         $baseStage = ucwords(trim(trim($escaped_row[$excelColumnNamesWithIndexes['First_Occurrence']], "'\"")));
                         if (!$baseStage || $baseStage === "NULL") {
                             echo "Skipping $genera with empty First Occurrence.<br>";
+                            $missingStages[] = $genera;
+                            $amountOfRowsSkipped++;
                             continue;
                         }
                         $topStage = ucwords(trim(trim($escaped_row[$excelColumnNamesWithIndexes['Last_Occurrence']], "'\"")));
                         if (!$topStage || $topStage === "NULL") {
                             echo "Skipping $genera with empty Last Occurrence.<br>";
+                            $missingStages[] = $genera;
+                            $amountOfRowsSkipped++;
                             continue;
                         }
                         // Now do calculations about age here, geological stages in $geologicalStages
@@ -84,6 +95,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                             $topStage = $convertedStage;
                         }
                         if ($conversionFailed) {
+                            $amountOfRowsSkipped++;
                             continue;
                         }
                         // Now that they exist we can access values from $geologicalStages, you can see these values in TimescaleLib.php
@@ -177,6 +189,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                             echo "<br>Failed to create upload directory for images.";
                         } else {
                             for ($i = 0; $i < count($imageLinks); $i++) {
+                                $amountOfImagesFound++;
                                 $caption = $figureCaptions[$i] ?? "figure_$i";
                                 
                                 $cleanCaption = normalizeCaption($caption);
@@ -196,19 +209,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
 
                                 if (file_put_contents($imagePath, $image)) {
                                     echo "<br>Downloaded image for $genera: $imageFileName";
+                                    $amountOfNewImagesAdded++;
                                 } else {
                                     echo "<br>Failed to save image for $genera";
                                 }
                             }
                         }
                         echo "<br>";
+                        $amountOfGeneraUploaded++;
                     }
                     echo "<br>Done parsing.<br>";
+                    echo "<br>These are the genera we could not find base or top stage for:<br>";
+                    foreach($missingStages as $genera) {
+                        echo "$genera<br>";
+                    }
                     echo "<br>These are the stages we could not convert:<br>";
                     foreach($unrecognizedStages as $stage => $value) {
                         echo "$value<br>";
                     }
                     var_dump($unrecognizedStages);
+                    echo "<br>Amount of genera uploaded: $amountOfGeneraUploaded<br>";
+                    echo "Amount of images found: $amountOfImagesFound<br>";
+                    echo "Amount of new images added: $amountOfNewImagesAdded<br>";
+                    echo "Total rows parsed: " . count($rows) . "<br>";
+                    echo "Rows skipped: $amountOfRowsSkipped<br>";
+                    echo "- Skipped due to missing First or Last Occurrence: " . count($missingStages) . "<br>";
+                    echo "- Skipped due to unrecognized stage names: " . count($unrecognizedStages) . "<br>";
                 } else {
                     //Excel file does not contain same columns
                     echo "<br>Excel file does not contain same columns as database. The first row of the excel file should have the exact same column names (case-sensitive) in the same order.";
