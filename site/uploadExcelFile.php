@@ -16,7 +16,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
         if (move_uploaded_file($file_tmp_name, $destination)) {
             echo "File uploaded successfully. File name: " . $file_name;
             $xlsx = SimpleXLSX::parse($destination);
-            $geologicalStages = parseGeologicalStages("./uploads/MasterRegionalStagewBrach-subdivisions2June2025.xlsx");
+            $geologicalStages = parseGeologicalStages("./uploads/MasterRegionalStageTourCorr3June2025.xlsx");
             $columns = [];
             if ($xlsx === false) {
                 echo "<br>Can't open excel file.";
@@ -101,14 +101,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                         // Now that they exist we can access values from $geologicalStages, you can see these values in TimescaleLib.php
                         $baseData = $geologicalStages[$baseStage];
                         $baseDate = round($baseData["base"], 2);
-                        $baseFractionUp = (float)$baseData["percent_up"];
+                        $baseFractionUp = (float)$baseData["begin_percent_up"];
                         $beginningStage = $baseData["stage"];
                         $internationalBase = $baseData["international_base"];
                         echo "<br>Computed base age of <b>$genera</b> as $baseDate.";
                         echo "<br>Found First Occurrence <b>$beginningStage</b> within International Stage as <b>$internationalBase</b>.";
                         $topData = $geologicalStages[$topStage];
                         $topDate = round($topData["top"], 2);
-                        $topFractionUp = (float)$topData["percent_up"];
+                        $topFractionUp = (float)$topData["end_percent_up"];
                         $endingStage = $topData["stage"];
                         $internationalTop = $topData["international_top"];
                         echo "<br>Computed top age of <b>$genera</b> as $topDate.";
