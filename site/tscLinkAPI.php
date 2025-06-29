@@ -40,10 +40,11 @@ function sendDatapackToTsconline($datapack, $url, $token, $siteUrlTreatise) {
     $postFields['description'] = 'Datapack generated via Treatise API';
     $postFields['authoredBy'] = 'Treatise';
     $postFields['isPublic'] = 'true';
-    $postFields['type'] = 'treatise';
-    $postFields['uuid'] = 'treatise';
+    $postFields['type'] = 'official';
+    $postFields['uuid'] = 'official';
     $postFields['references'] = json_encode([]);
-    $postFields['tags'] = json_encode([]);
+    $postFields['tags'] = json_encode(["Treatise"]);
+    $postFields['hasFiles'] = 'false';
 
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_POST, true);
@@ -51,7 +52,7 @@ function sendDatapackToTsconline($datapack, $url, $token, $siteUrlTreatise) {
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         "Authorization: Bearer $token",
-        "Phylum: $siteUrlTreatise",
+        "datapacktitle: $siteUrlTreatise",
         "datapackHash: $datapackHash"
     ]);
     $response = curl_exec($ch);
@@ -147,20 +148,20 @@ try {
     $datapack .= "date:\t" . "4/16/25" . "\n\n";
 
     $datapack .= "$siteUrlTreatise Total-Genera\tpoint\t200\t255/255/255\n";
-    $datapack .= "rect\tline\tnofill\t$min_total\t$max_total\tsmoothed\n";
+    $datapack .= "rect\tline\tfill\t$min_total\t$max_total\tsmoothed\n";
     foreach ($timeBlocks as $time) {
         $datapack .= "\t$time\t" . $counts[$time]['Total'] . "\n";
     }
     $datapack .= "\n";
     $datapack .= "$siteUrlTreatise New-Genera\tpoint\t200\t255/255/255\n";
-    $datapack .= "rect\tline\tnofill\t$min_new\t$max_new\tsmoothed\n";
+    $datapack .= "rect\tline\tfill\t$min_new\t$max_new\tsmoothed\n";
     foreach ($timeBlocks as $time) {
         $datapack .= "\t$time\t" . $counts[$time]['New'] . "\n";
     }
     $datapack .= "\n";
 
     $datapack .= "$siteUrlTreatise Extinct-Genera\tpoint\t200\t255/255/255\n";
-    $datapack .= "rect\tline\tnofill\t$min_extinct\t$max_extinct\tsmoothed\n";
+    $datapack .= "rect\tline\tfill\t$min_extinct\t$max_extinct\tsmoothed\n";
     foreach ($timeBlocks as $time) {
         $datapack .= "\t$time\t" . $counts[$time]['Extinct'] . "\n";
     }
@@ -195,14 +196,21 @@ try {
 
     $response = sendDatapackToTsconline($datapack, $tsconlineUrl, $token, $siteUrlTreatise);
     $responseDecoded = json_decode($response, true);
-    if (!isset($responseDecoded['phylum'])) {
+    if (!isset($responseDecoded['datapackTitle'])) {
         throw new Exception("Invalid response from TSConline: $response");
     }
 
     try {
-        $datapackPhylum = $responseDecoded['phylum'];
-        // $tsconlineUrl = "https://tsconline.timescalecreator.org/generate-external-chart?phylum=" . urlencode($datapackPhylum) . "&chartInfo=" . $oldestTime . "-" . $recentTime . "-" . $min_total . "-" . $max_total . "-" . $min_new . "-" . $max_new . "-" . $min_extinct . "-" . $max_extinct;
-        $tsconlineUrl = "https://tsconline.timescalecreator.org/generate-external-chart?phylum=" . urlencode($datapackPhylum) . "&chartInfo=" . $oldestTime . "-" . $recentTime . "-" . $min_total . "-" . $max_total . "-" . $min_new . "-" . $max_new . "-" . $min_extinct . "-" . $max_extinct;
+        $datapackPhylum = $responseDecoded['datapackTitle'];
+        $tsconlineUrl = "https://tsconline.timescalecreator.org/generate-external-chart?"
+        . "datapackTitle=" . urlencode($datapackPhylum)
+        . "&chartConfig=Internal"
+        . "&baseVal=" . urlencode($oldestTime)
+        . "&topVal=" . urlencode($recentTime)
+        . "&unitStep=0.1"
+        . "&unitType=Ma"
+        . "&minMaxPlot=" . urlencode("$min_total-$max_total-$min_new-$max_new-$min_extinct-$max_extinct");
+
         header("Location: $tsconlineUrl");
         exit;
     } catch (Exception $e) {
