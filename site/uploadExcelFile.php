@@ -181,7 +181,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                         $allFigureCaptions = str_replace(['\\r\\n', '\\n', '\\r'], "\n", $allFigureCaptionsRaw);
                         $figureCaptions = preg_split("/\r\n|\n|\r/", trim($allFigureCaptions));
                         // Regular expression to capture URLs inside parentheses
-                        preg_match_all('/\((https?:\/\/[^\)]+)\)/', $allImageLinks, $matches);
+                        // preg_match_all('/\((https?:\/\/[^\)]+)\)/', $allImageLinks, $matches); // old version
+                        preg_match_all('/[\(\{](https?:\/\/[^\)\}]+)[\)\}]/', $allImageLinks, $matches);
+
                         $imageLinks = $matches[1];
                         // Extracted URLs will be in $matches[1], $matches[0] will contain the full URL with parentheses (don't want)
                         $imageFolderPath = $upload_directory . $genera . "/Figure_Caption/";
