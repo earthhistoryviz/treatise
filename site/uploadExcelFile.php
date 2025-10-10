@@ -16,7 +16,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
         if (move_uploaded_file($file_tmp_name, $destination)) {
             echo "File uploaded successfully. File name: " . $file_name;
             $xlsx = SimpleXLSX::parse($destination);
-            $geologicalStages = parseGeologicalStages("./uploads/MasterRegionalStagePamirPerm4July2025.xlsx");
+            echo "Using lookup table with file name: MasterRegionalStageCambr3Oct2025.xlsx";
+            $geologicalStages = parseGeologicalStages("./uploads/MasterRegionalStageCambr3Oct2025.xlsx");
             $columns = [];
             if ($xlsx === false) {
                 echo "<br>Can't open excel file.";
