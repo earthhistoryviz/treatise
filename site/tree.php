@@ -21,7 +21,7 @@
   </style>
 </head>
 <body>
-  <div class="main-container">
+  <div class="main-container text-center">
     <?php
     session_start();
     $auth = $_SESSION["loggedIn"];
@@ -29,20 +29,24 @@
     ?>
 
     <div class="map-container">
-      <img src="treeIMG.png" alt="" width="1078" height="881" usemap="#Map" id="treeImage"/>
+      <img src="treatise_tree_10_24_2025.png" alt="" width="1302" height="1642" usemap="#Map" id="treeImage"/>
       <div id="hoverBox" class="highlight"></div>
     </div>
 
     <map name="Map">
-      <area shape="rect" coords="42,297,181,331" href="https://treatise.geolex.org/" data-coords="42,297,181,331">
-      <area shape="rect" coords="852,152,991,184" href="https://porifera.treatise.geolex.org/index.php" data-coords="852,152,991,184">
-      <area shape="rect" coords="420,424,599,455" href="https://brachiopod.treatise.geolex.org/" data-coords="420,424,599,455">
-      <area shape="rect" coords="850,425,1016,457" href="https://brachiopod.treatise.geolex.org/" data-coords="850,425,1016,457">
-      <area shape="rect" coords="846,489,1013,521" href="https://ammonoid.treatise.geolex.org/" data-coords="846,489,1013,521">
-      <area shape="rect" coords="841,631,1016,665" href="https://echinoderm.treatise.geolex.org/" data-coords="841,631,1016,665">
-      <area shape="rect" coords="585,702,763,735" href="https://graptolite.treatise.geolex.org/" data-coords="585,702,763,735">
-      <area shape="rect" coords="839,702,1016,732" href="https://graptolite.treatise.geolex.org/" data-coords="839,702,1016,732">
-      <area shape="rect" coords="839,841,1022,873" href="https://charophyte.treatise.geolex.org/" data-coords="839,841,1022,873">
+      <area shape="rect" coords="848,104,1017,140" href="https://charophyte.treatise.geolex.org/" data-coords="848,104,1017,140"> 
+      <area shape="rect" coords="445,455,937,492" href="https://porifera.treatise.geolex.org/index.php" data-coords="445,455,937,492">
+      <!-- bryozoa -->
+      <area shape="rect" coords="443,594,577,633" href="https://treatise.geolex.org/" data-coords="443,594,577,633">
+      <area shape="rect" coords="447,665,622,704" href="https://brachiopod.treatise.geolex.org/" data-coords="447,665,622,704">
+      <area shape="rect" coords="852,868,1024,909" href="https://ammonoid.treatise.geolex.org/" data-coords="852,868,1024,909">
+      <!-- bivalves -->
+      <area shape="rect" coords="854,944,980,981" href="https://treatise.geolex.org/" data-coords="854,944,980,981">
+      <area shape="rect" coords="850,1034,1010,1071" href="https://trilobite.treatise.geolex.org/" data-coords="850,1034,1010,1071">
+      <area shape="rect" coords="448,1365,661,1403" href="https://echinoderm.treatise.geolex.org/" data-coords="448,1365,661,1403">
+      <area shape="rect" coords="448,1498,621,1537" href="https://graptolite.treatise.geolex.org/" data-coords="448,1498,621,1537">
+      <area shape="rect" coords="849,1570,1001,1608" href="https://conodonts.treatise.geolex.org/" data-coords="849,1570,1001,1608">
+      <area shape="rect" coords="31,804,197,842" href="https://treatise.geolex.org/" data-coords="31,804,197,842">
     </map>
 
     <script>
