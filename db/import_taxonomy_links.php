@@ -1,4 +1,13 @@
 <?php
+/*
+ * Parse the file with taxonomy level (e.g. class name) and PDF page correspondence.
+ * Usage: php import_taxonomy_links.php <excel_file_name> <current_website> <pdf_file_name>
+ * @excel_file_name: the excel file with taxonomy level/name and PDF page correspondence
+ * Note: this file should be placed under /db folder
+ * @current_website: current website name before ".treatise.geolex.org" (phylumn name, e.g. graptolite, charophyte)
+ * Note: this file should be placed under /site folder
+ * @pdf_file_name: name of the pdf file, ending with ".pdf"
+ */
 $servername = "localhost";
 $username = "root";
 $password = "";
@@ -11,19 +20,22 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-echo "Connected to database successfully\n";
+echo "Connected to database successfully";
+
 
 $sql_usemyDB = "USE myDB";
 if ($conn->query($sql_usemyDB) === true) {
-    echo "Using database myDB";
+    echo "\nUsing database myDB";
 } else {
     die("\nDatabase myDB does not exist, create database using create_db.php first. Error: " . $conn->error);
 }
 
 if (!isset($argv[1])) {
-    die("Provide excel filepath. Usage: php import_taxonomy_links.php <excel_file_path> <pdf_url>\n");
+    die("\nProvide excel file name. \nphp import_taxonomy_links.php <excel_file_name> <current_website> <pdf_file_name>\n");
 } elseif (!isset($argv[2])) {
-    die("Provide PDF file base link. Usage: php import_taxonomy_links.php <excel_file_path> <pdf_url>\n");
+    die("\nProvide website base name (e.g. graptolite, charophyte). \nphp import_taxonomy_links.php <excel_file_name> <current_website> <pdf_file_name>\n");
+} elseif (!isset($argv[3])) {
+    die("\nProvide PDF file name. \nphp import_taxonomy_links.php <excel_file_name> <current_website> <pdf_file_name>\n");
 }
 
 $sql_drop = "DROP TABLE IF EXISTS taxonomy_pdf_links";
@@ -54,7 +66,7 @@ if ($conn->query($sql_create) === true) {
     die("\nError creating table: " . $conn->error);
 }
 
-$pdf_base_url = isset($argv[2]) ? $argv[2] : "";
+$pdf_base_url = "https://" . $argv[2] . ".treatise.geolex.org/" . $argv[3];
 
 include_once("SimpleXLSX.php");
 $xlsx = SimpleXLSX::parse($argv[1]);
@@ -66,7 +78,7 @@ if ($xlsx === false) {
 $rows = $xlsx->rows(0);
 
 // define all columns that will be linked to PDF pages
-// NOTE: excel file should follow standard structure, i.e. Phylum,Phy-page,Subhylum,?,Class,Class-page
+// NOTE: excel file should follow standard structure, i.e. Phylum,Phy-page,Subhylum,SubPhy-Page, ...
 $taxonomyColumns = [
     0 => 'Phylum',
     2 => 'Subphylum',
@@ -111,9 +123,6 @@ for ($rowIndex = 1; $rowIndex < count($rows); $rowIndex++) {
         
         $taxonomyName = isset($row[$nameColIndex]) ? trim($row[$nameColIndex]) : '';
         $pageNumber = isset($row[$pageColIndex]) ? trim($row[$pageColIndex]) : '';
-        
-        
-        $isInvalid = empty($taxonomyName) || empty($pageNumber) || !is_numeric($pageNumber);
         
         if (empty($taxonomyName) || empty($pageNumber)) {
             // Empty column, just skip, do not need to do anything
