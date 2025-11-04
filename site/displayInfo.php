@@ -60,20 +60,26 @@
             <h2 class="small-header">Classification</h2>
             <div id="Phylum" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Phylum: &nbsp;</b>
-              <div id="Phylum" class="editable-text">
-                <?= eliminateParagraphs($fossilData["Phylum"]) ?>
+              <div id="Phylum" class="editable-text" 
+                   data-taxonomy-level="Phylum" 
+                   data-taxonomy-name="<?= htmlspecialchars($fossilData["Phylum"]) ?>">
+                <?= htmlspecialchars(eliminateParagraphs($fossilData["Phylum"])) ?>
               </div>
             </div>
             <div id="Class" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Class: &nbsp;</b>
-              <div id="Class" class="editable-text">
-                <?= eliminateParagraphs($fossilData["Class"]) ?>
+              <div id="Class" class="editable-text"
+                   data-taxonomy-level="Class"
+                   data-taxonomy-name="<?= htmlspecialchars($fossilData["Class"]) ?>">
+                <?= htmlspecialchars(eliminateParagraphs($fossilData["Class"])) ?>
               </div>
             </div>
             <div id="Order" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Order: &nbsp;</b>
-              <div id="Order" class="editable-text">
-                <?= eliminateParagraphs($fossilData["Order"]) ?>
+              <div id="Order" class="editable-text"
+                   data-taxonomy-level="Order"
+                   data-taxonomy-name="<?= htmlspecialchars($fossilData["Order"]) ?>">
+                <?= htmlspecialchars(eliminateParagraphs($fossilData["Order"])) ?>
               </div>
             </div>
             <div id="Superfamily" class="horiz" style="text-align: left;">
@@ -84,8 +90,10 @@
             </div>
             <div id="Family" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Family: &nbsp;</b>
-              <div id="Family" class="editable-text">
-                <?= eliminateParagraphs($fossilData["Family"]) ?>
+              <div id="Family" class="editable-text"
+                   data-taxonomy-level="Family"
+                   data-taxonomy-name="<?= htmlspecialchars($fossilData["Family"]) ?>">
+                <?= htmlspecialchars(eliminateParagraphs($fossilData["Family"])) ?>
               </div>
             </div>
             <div id="Genus" class="horiz" style="text-align: left;">
@@ -212,7 +220,40 @@
           </div>
         </div>
       </div>
-    </div> <?php
+    </div>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // For all elements with data-taxonomy-level 
+        const taxonomyElements = document.querySelectorAll('[data-taxonomy-level]');
+        
+        // Substitute all plain text with links
+        taxonomyElements.forEach(function(element) {
+          const level = element.getAttribute('data-taxonomy-level');
+          const name = element.getAttribute('data-taxonomy-name');
+          
+          // Skip empty ones
+          if (!name || name.trim() === '') {
+            return;
+          }
+          
+          // Get PDF link
+          fetch(`getTaxonomyLink.php?level=${encodeURIComponent(level)}&name=${encodeURIComponent(name)}`)
+            .then(response => response.json())
+            .then(data => {
+              if (data.link) {
+                // Substitute plain text with links
+                const currentText = element.textContent;
+                element.innerHTML = `<a href="${data.link}" target="_blank">${currentText}</a>`;
+              }
+              // Link not found. Remain plain text.
+            })
+            .catch(error => {
+              console.error('Error fetching taxonomy link:', error);
+            });
+        });
+      });
+    </script>
+    <?php
   } ?>
 </div> 
 <?php
