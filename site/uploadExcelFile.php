@@ -16,8 +16,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
         if (move_uploaded_file($file_tmp_name, $destination)) {
             echo "File uploaded successfully. File name: " . $file_name;
             $xlsx = SimpleXLSX::parse($destination);
-            echo "Using lookup table with file name: MasterRegionalStageCambr3Oct2025.xlsx";
-            $geologicalStages = parseGeologicalStages("./uploads/MasterRegionalStageCambr3Oct2025.xlsx");
+            echo "Using lookup table with file name: MasterRegionalStageCret12Oct2025.xlsx";
+            $geologicalStages = parseGeologicalStages("./uploads/MasterRegionalStageCret12Oct2025.xlsx");
             $columns = [];
             if ($xlsx === false) {
                 echo "<br>Can't open excel file.";
@@ -30,11 +30,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                 }, $first_row);
                 //$excelColumnNames and $conn from SqlConnection.php
                 include_once("SqlConnection.php");
-                $previousPhylum = "'Unknown'";
-                $previousClass = "'Unknown'";
-                $previousOrder = "'Unknown'";
-                $previousSuperfamily = "'Unknown'";
-                $previousFamily = "'Unknown'";
+                $previousPhylum = "'None'";
+                $previousClass = "'None'";
+                $previousOrder = "'None'";
+                $previousSuperfamily = "'None'";
+                $previousFamily = "'None'";
                 if ($first_row === $excelColumnNames) {
                     echo "<br>Columns in correct format, parsing...<br>";
                     $missingStages = [];
