@@ -66,6 +66,16 @@
                 <?= htmlspecialchars(eliminateParagraphs($fossilData["Phylum"])) ?>
               </div>
             </div>
+            <?php if (!empty($fossilData["Subphylum"]) && $fossilData["Subphylum"] !== 'None'): ?>
+            <div id="Subphylum" class="horiz" style="text-align: left;">
+              <b>&nbsp;&nbsp;&nbsp;&nbsp;Subphylum: &nbsp;</b>
+              <div id="Subphylum" class="editable-text"
+                  data-taxonomy-level="Subphylum"
+                  data-taxonomy-name="<?= htmlspecialchars($fossilData["Subphylum"]) ?>">
+                <?= htmlspecialchars(eliminateParagraphs($fossilData["Subphylum"])) ?>
+              </div>
+            </div>
+            <?php endif; ?>
             <div id="Class" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Class: &nbsp;</b>
               <div id="Class" class="editable-text"
@@ -74,6 +84,16 @@
                 <?= htmlspecialchars(eliminateParagraphs($fossilData["Class"])) ?>
               </div>
             </div>
+            <?php if (!empty($fossilData["Subclass"]) && $fossilData["Subclass"] !== 'None'): ?>
+            <div id="Subclass" class="horiz" style="text-align: left;">
+              <b>&nbsp;&nbsp;&nbsp;&nbsp;Subclass: &nbsp;</b>
+              <div id="Subclass" class="editable-text"
+                  data-taxonomy-level="Subclass"
+                  data-taxonomy-name="<?= htmlspecialchars($fossilData["Subclass"]) ?>">
+                <?= htmlspecialchars(eliminateParagraphs($fossilData["Subclass"])) ?>
+              </div>
+            </div>
+            <?php endif; ?>
             <div id="Order" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Order: &nbsp;</b>
               <div id="Order" class="editable-text"
@@ -82,10 +102,32 @@
                 <?= htmlspecialchars(eliminateParagraphs($fossilData["Order"])) ?>
               </div>
             </div>
+            <?php if (!empty($fossilData["Suborder"]) && $fossilData["Suborder"] !== 'None'): ?>
+            <div id="Suborder" class="horiz" style="text-align: left;">
+              <b>&nbsp;&nbsp;&nbsp;&nbsp;Suborder: &nbsp;</b>
+              <div id="Suborder" class="editable-text"
+                  data-taxonomy-level="Suborder"
+                  data-taxonomy-name="<?= htmlspecialchars($fossilData["Suborder"]) ?>">
+                <?= htmlspecialchars(eliminateParagraphs($fossilData["Suborder"])) ?>
+              </div>
+            </div>
+            <?php endif; ?>
+            <?php if (!empty($fossilData["Infraorder"]) && $fossilData["Infraorder"] !== 'None'): ?>
+            <div id="Infraorder" class="horiz" style="text-align: left;">
+              <b>&nbsp;&nbsp;&nbsp;&nbsp;Infraorder: &nbsp;</b>
+              <div id="Infraorder" class="editable-text"
+                  data-taxonomy-level="Infraorder"
+                  data-taxonomy-name="<?= htmlspecialchars($fossilData["Infraorder"]) ?>">
+                <?= htmlspecialchars(eliminateParagraphs($fossilData["Infraorder"])) ?>
+              </div>
+            </div>
+            <?php endif; ?>
             <div id="Superfamily" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Superfamily: &nbsp;</b>
-              <div id="Superfamily" class="editable-text">
-                <?= eliminateParagraphs($fossilData["Superfamily"]) ?>
+              <div id="Superfamily" class="editable-text"
+                   data-taxonomy-level="Superfamily"
+                   data-taxonomy-name="<?= htmlspecialchars($fossilData["Superfamily"]) ?>">
+                <?= htmlspecialchars(eliminateParagraphs($fossilData["Superfamily"])) ?>
               </div>
             </div>
             <div id="Family" class="horiz" style="text-align: left;">
@@ -96,6 +138,16 @@
                 <?= htmlspecialchars(eliminateParagraphs($fossilData["Family"])) ?>
               </div>
             </div>
+            <?php if (!empty($fossilData["Subfamily"]) && $fossilData["Subfamily"] !== 'None'): ?>
+            <div id="Subfamily" class="horiz" style="text-align: left;">
+              <b>&nbsp;&nbsp;&nbsp;&nbsp;Subfamily: &nbsp;</b>
+              <div id="Subfamily" class="editable-text"
+                  data-taxonomy-level="Subfamily"
+                  data-taxonomy-name="<?= htmlspecialchars($fossilData["Subfamily"]) ?>">
+                <?= htmlspecialchars(eliminateParagraphs($fossilData["Subfamily"])) ?>
+              </div>
+            </div>
+            <?php endif; ?>
             <div id="Genus" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Formal Genus Name and Reference: &nbsp;</b>
               <div id="Genus" class="editable-text">
