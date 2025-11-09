@@ -94,6 +94,7 @@
               </div>
             </div>
             <?php endif; ?>
+            <?php if (!empty($fossilData["Order"]) && $fossilData["Order"] !== 'None'): ?>
             <div id="Order" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Order: &nbsp;</b>
               <div id="Order" class="editable-text"
@@ -102,6 +103,7 @@
                 <?= htmlspecialchars(eliminateParagraphs($fossilData["Order"])) ?>
               </div>
             </div>
+            <?php endif; ?>
             <?php if (!empty($fossilData["Suborder"]) && $fossilData["Suborder"] !== 'None'): ?>
             <div id="Suborder" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Suborder: &nbsp;</b>
@@ -122,6 +124,7 @@
               </div>
             </div>
             <?php endif; ?>
+            <?php if (!empty($fossilData["Superfamily"]) && $fossilData["Superfamily"] !== 'None'): ?>
             <div id="Superfamily" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Superfamily: &nbsp;</b>
               <div id="Superfamily" class="editable-text"
@@ -130,6 +133,8 @@
                 <?= htmlspecialchars(eliminateParagraphs($fossilData["Superfamily"])) ?>
               </div>
             </div>
+            <?php endif; ?>
+            <?php if (!empty($fossilData["Family"]) && $fossilData["Family"] !== 'None'): ?>
             <div id="Family" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Family: &nbsp;</b>
               <div id="Family" class="editable-text"
@@ -138,6 +143,7 @@
                 <?= htmlspecialchars(eliminateParagraphs($fossilData["Family"])) ?>
               </div>
             </div>
+            <?php endif; ?>
             <?php if (!empty($fossilData["Subfamily"]) && $fossilData["Subfamily"] !== 'None'): ?>
             <div id="Subfamily" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Subfamily: &nbsp;</b>

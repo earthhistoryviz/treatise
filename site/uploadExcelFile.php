@@ -30,11 +30,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                 }, $first_row);
                 //$excelColumnNames and $conn from SqlConnection.php
                 include_once("SqlConnection.php");
-                $previousPhylum = "'None'";
-                $previousClass = "'None'";
-                $previousOrder = "'None'";
-                $previousSuperfamily = "'None'";
-                $previousFamily = "'None'";
+                // Define taxonomy hierarchy in order (left to right in excel, high level to low level)
+                $taxonomyLevels = [
+                    'Phylum', 'Subphylum', 'Class', 'Subclass', 'Order',
+                    'Suborder', 'Infraorder', 'Superfamily', 'Family', 'Subfamily'
+                ];
+                // Initialize previous values for taxonomy levels, used for inheritance
+                $previous = [];
+                foreach ($taxonomyLevels as $level) {
+                    $previous[$level] = "'None'";
+                }
                 if ($first_row === $excelColumnNames) {
                     echo "<br>Columns in correct format, parsing...<br>";
                     $missingStages = [];
@@ -115,45 +120,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                         echo "<br>Computed top age of <b>$genera</b> as $topDate.";
                         echo "<br>Found Last Occurrence <b>$endingStage</b> within International Stage as <b>$internationalTop</b>.";
                         // Use previous row values if no values are provided
-                        $phylumIndex = $excelColumnNamesWithIndexes['Phylum'];
-                        $invalidPhylum = isInvalidEscapeRow($phylumIndex, $escaped_row);
-                        if ($invalidPhylum == 1) {
-                            echo "<br>No valid phylum provided, using previous value: $previousPhylum";
-                            $escaped_row[$phylumIndex] = $previousPhylum; // if no phylum is provided, use the previous phylum
-                        } elseif ($invalidPhylum == 0) {
-                            $previousPhylum = $escaped_row[0]; // if phylum is provided, update the previous phylum
-                        }
-                        $classIndex = $excelColumnNamesWithIndexes['Class'];
-                        $invalidClass = isInvalidEscapeRow($classIndex, $escaped_row);
-                        if ($invalidClass == 1) {
-                            echo "<br>No valid class provided, using previous value: $previousClass";
-                            $escaped_row[$classIndex] = $previousClass;
-                        } elseif ($invalidClass == 0) {
-                            $previousClass = $escaped_row[$classIndex];
-                        }
-                        $orderIndex = $excelColumnNamesWithIndexes['Order'];
-                        $invalidOrder = isInvalidEscapeRow($orderIndex, $escaped_row);
-                        if ($invalidOrder == 1) {
-                            echo "<br>No valid order provided, using previous value: $previousOrder";
-                            $escaped_row[$orderIndex] = $previousOrder;
-                        } elseif ($invalidOrder == 0) {
-                            $previousOrder = $escaped_row[$orderIndex];
-                        }
-                        $superFamilyIndex = $excelColumnNamesWithIndexes['Superfamily'];
-                        $invalidSuperfamily = isInvalidEscapeRow($superFamilyIndex, $escaped_row);
-                        if ($invalidSuperfamily == 1) {
-                            echo "<br>No valid superfamily provided, using previous value: $previousSuperfamily";
-                            $escaped_row[$superFamilyIndex] = $previousSuperfamily;
-                        } elseif ($invalidSuperfamily == 0) {
-                            $previousSuperfamily = $escaped_row[$superFamilyIndex];
-                        }
-                        $familyIndex = $excelColumnNamesWithIndexes['Family'];
-                        $invalidFamily = isInvalidEscapeRow($familyIndex, $escaped_row);
-                        if ($invalidFamily == 1) {
-                            echo "<br>No valid family provided, using previous value: $previousFamily";
-                            $escaped_row[$familyIndex] = $previousFamily;
-                        } elseif ($invalidFamily == 0) {
-                            $previousFamily = $escaped_row[$familyIndex];
+                        // If provided, update value and reset all lower order values
+                        // For each taxonomy level (each column):
+                        for ($i = 0; $i < count($taxonomyLevels); $i++) {
+                            $level = $taxonomyLevels[$i];
+                            $columnIndex = $excelColumnNamesWithIndexes[$level];
+                            $isInvalid = isInvalidEscapeRow($columnIndex, $escaped_row);
+                            if ($isInvalid == 1) {
+                                // No valid value - inherit from previous row
+                                $previousLevel = $previous[$level];
+                                echo "<br>No valid $level provided, using previous value: $previousLevel";
+                                $escaped_row[$columnIndex] = $previousLevel;
+                            } elseif ($isInvalid == 0) {
+                                // Valid value found - update this level and reset all lower levels
+                                $previous[$level] = $escaped_row[$columnIndex];
+                                for ($lowerIndex = $i + 1; $lowerIndex < count($taxonomyLevels); $lowerIndex++) {
+                                    $previous[$taxonomyLevels[$lowerIndex]] = "'None'";
+                                }
+                            }
                         }
                         // On DUPLICATE KEY UPDATE is needed in the case we're tring to update a row that already exists in the table
                         $sqlInsert = "INSERT INTO fossil (`" . implode("`,`", $excelColumnNames) . "`, `beginning_date`, `fraction_up_beginning_stage`, `beginning_stage`, `ending_date`, `fraction_up_ending_stage`, `ending_stage`) 
