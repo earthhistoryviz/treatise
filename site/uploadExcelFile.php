@@ -85,7 +85,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                         $convertedStage = standardizeGeologicalStage($baseStage, $geologicalStages);
                         if (!$convertedStage) {
                             echo "<br>Could not find $baseStage within International Stage";
-                            $unrecognizedStages[$baseStage] = "Did not find Base $baseStage for $genera";
+                            if (!isset($unrecognizedStages[$baseStage])) {
+                                $unrecognizedStages[$baseStage] = [];
+                            }
+                            $unrecognizedStages[$baseStage][] = $genera;
+
                             $conversionFailed = true;
                         } else {
                             echo "<br>Converted First Occurrence $baseStage to $convertedStage";
@@ -94,7 +98,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                         $convertedStage = standardizeGeologicalStage($topStage, $geologicalStages);
                         if (!$convertedStage) {
                             echo "<br>Could not find $topStage within International Stage";
-                            $unrecognizedStages[$topStage] = "Did not find Top $topStage for $genera";
+                            if (!isset($unrecognizedStages[$baseStage])) {
+                                $unrecognizedStages[$baseStage] = [];
+                            }
+                            $unrecognizedStages[$baseStage][] = $genera;
+                            
                             $conversionFailed = true;
                         } else {
                             echo "<br>Converted Last Occurrence $topStage to $convertedStage";
@@ -211,8 +219,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                         echo "$genera<br>";
                     }
                     echo "<br>These are the stages we could not convert:<br>";
-                    foreach($unrecognizedStages as $stage => $value) {
-                        echo "$value<br>";
+                    foreach($unrecognizedStages as $stage => $generaList) {
+                        $generaCount = count($generaList);
+                        $generaNames = implode(", ", $generaList);
+                        echo "<br><b>$stage</b> (found in $generaCount genera): $generaNames<br>";
                     }
                     var_dump($unrecognizedStages);
                     echo "<br>Amount of genera uploaded: $amountOfGeneraUploaded<br>";
