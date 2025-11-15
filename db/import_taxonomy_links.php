@@ -1,12 +1,11 @@
 <?php
 /*
  * Parse the file with taxonomy level (e.g. class name) and PDF page correspondence.
- * Usage: php import_taxonomy_links.php <excel_file_name> <current_website> <pdf_file_name>
+ * Usage: php import_taxonomy_links.php <excel_file_name> <pdf_file_name>
  * @excel_file_name: the excel file with taxonomy level/name and PDF page correspondence
- * Note: this file should be placed under /db folder
- * @current_website: current website name before ".treatise.geolex.org" (phylumn name, e.g. graptolite, charophyte)
- * Note: this file should be placed under /site folder
+ * Note: excel file should be placed under /db folder
  * @pdf_file_name: name of the pdf file, ending with ".pdf"
+ * Note: pdf file should be placed under /site folder
  */
 $servername = "localhost";
 $username = "root";
@@ -31,11 +30,9 @@ if ($conn->query($sql_usemyDB) === true) {
 }
 
 if (!isset($argv[1])) {
-    die("\nProvide excel file name. \nphp import_taxonomy_links.php <excel_file_name> <current_website> <pdf_file_name>\n");
+    die("\nProvide excel file name. \nphp import_taxonomy_links.php <excel_file_name> <pdf_file_name>\n");
 } elseif (!isset($argv[2])) {
-    die("\nProvide website base name (e.g. graptolite, charophyte). \nphp import_taxonomy_links.php <excel_file_name> <current_website> <pdf_file_name>\n");
-} elseif (!isset($argv[3])) {
-    die("\nProvide PDF file name. \nphp import_taxonomy_links.php <excel_file_name> <current_website> <pdf_file_name>\n");
+    die("\nProvide PDF file name. \nphp import_taxonomy_links.php <excel_file_name> <pdf_file_name>\n");
 }
 
 $sql_drop = "DROP TABLE IF EXISTS taxonomy_pdf_links";
@@ -48,14 +45,14 @@ if ($conn->query($sql_drop) === true) {
 /* Create the table for toxonomy names and pdf links correspondence here
  * taxonomy_level -- 'Phylum', 'Class', 'Order', etc.
  * taxonomy_name -- 'Charophyta', 'Charales', etc.
- * pdf_url -- e.g. https://charophyte.treatise.geolex.org/Treatise-Charophytavolume.pdf
+ * pdf_name -- e.g. Treatise-Charophytavolume.pdf
  * page_number -- page number in PDF file
  */
 $sql_create = "CREATE TABLE taxonomy_pdf_links (
     id INT AUTO_INCREMENT PRIMARY KEY,
     taxonomy_level VARCHAR(50) NOT NULL,
     taxonomy_name VARCHAR(255) NOT NULL,
-    pdf_url VARCHAR(500) NOT NULL,
+    pdf_name VARCHAR(255) NOT NULL,
     page_number INT NOT NULL,
     UNIQUE KEY unique_taxonomy (taxonomy_level, taxonomy_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"; // sets Storage Engine and Character Set used
@@ -66,7 +63,7 @@ if ($conn->query($sql_create) === true) {
     die("\nError creating table: " . $conn->error);
 }
 
-$pdf_base_url = "https://" . $argv[2] . ".treatise.geolex.org/" . $argv[3];
+$pdf_file_name = $argv[2];
 
 include_once("SimpleXLSX.php");
 $xlsx = SimpleXLSX::parse($argv[1]);
@@ -102,10 +99,10 @@ foreach ($taxonomyColumns as $colIndex => $level) {
 }
 
 $stmt = $conn->prepare("
-    INSERT INTO taxonomy_pdf_links (taxonomy_level, taxonomy_name, pdf_url, page_number)
+    INSERT INTO taxonomy_pdf_links (taxonomy_level, taxonomy_name, pdf_name, page_number)
     VALUES (?, ?, ?, ?)
     ON DUPLICATE KEY UPDATE 
-        pdf_url = VALUES(pdf_url),
+        pdf_name = VALUES(pdf_name),
         page_number = VALUES(page_number)
 ");
 
@@ -136,7 +133,7 @@ for ($rowIndex = 1; $rowIndex < count($rows); $rowIndex++) {
                 'page' => $pageNum
             ];
             
-            $stmt->bind_param("sssi", $taxonomyLevel, $taxonomyName, $pdf_base_url, $pageNum);
+            $stmt->bind_param("sssi", $taxonomyLevel, $taxonomyName, $pdf_file_name, $pageNum);
             
             // Insert entry into database table
             if ($stmt->execute()) {

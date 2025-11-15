@@ -282,6 +282,7 @@
     <script>
       document.addEventListener('DOMContentLoaded', function() {
         // For all elements with data-taxonomy-level 
+        const baseUrl = window.location.origin;
         const taxonomyElements = document.querySelectorAll('[data-taxonomy-level]');
         
         // Substitute all plain text with links
@@ -300,8 +301,9 @@
             .then(data => {
               if (data.link) {
                 // Substitute plain text with links
+                const fullLink = `${baseUrl}${data.link.startsWith('/') ? '' : '/'}${data.link}`;
                 const currentText = element.textContent;
-                element.innerHTML = `<a href="${data.link}" target="_blank">${currentText}</a>`;
+                element.innerHTML = `<a href="${fullLink}" target="_blank">${currentText}</a>`;
               }
               // Link not found. Remain plain text.
             })
