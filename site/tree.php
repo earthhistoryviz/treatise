@@ -36,12 +36,10 @@
     <map name="Map">
       <area shape="rect" coords="848,104,1017,140" href="https://charophyte.treatise.geolex.org/" data-coords="848,104,1017,140"> 
       <area shape="rect" coords="445,455,937,492" href="https://porifera.treatise.geolex.org/index.php" data-coords="445,455,937,492">
-      <!-- bryozoa -->
-      <area shape="rect" coords="443,594,577,633" href="https://treatise.geolex.org/" data-coords="443,594,577,633">
+      <area shape="rect" coords="443,594,577,633" href="https://bryozoa.treatise.geolex.org/" data-coords="443,594,577,633">
       <area shape="rect" coords="447,665,622,704" href="https://brachiopod.treatise.geolex.org/" data-coords="447,665,622,704">
       <area shape="rect" coords="852,868,1024,909" href="https://ammonoid.treatise.geolex.org/" data-coords="852,868,1024,909">
-      <!-- bivalves -->
-      <area shape="rect" coords="854,944,980,981" href="https://treatise.geolex.org/" data-coords="854,944,980,981">
+      <area shape="rect" coords="854,944,980,981" href="https://bivalves.treatise.geolex.org/" data-coords="854,944,980,981">
       <area shape="rect" coords="850,1034,1010,1071" href="https://trilobite.treatise.geolex.org/" data-coords="850,1034,1010,1071">
       <area shape="rect" coords="448,1365,661,1403" href="https://echinoderm.treatise.geolex.org/" data-coords="448,1365,661,1403">
       <area shape="rect" coords="448,1498,621,1537" href="https://graptolite.treatise.geolex.org/" data-coords="448,1498,621,1537">
