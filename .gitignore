@@ -3,6 +3,7 @@ site/uploads/*
 site/*.png
 !site/logo.png
 db/*.xlsx
+!db/standard_template.xlsx
 .php-cs-fixer.cache
 .env
 !site/treeIMG.png
