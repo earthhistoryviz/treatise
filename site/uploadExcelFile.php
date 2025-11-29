@@ -51,7 +51,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                     foreach($rows as $row) {
                         //Replace empty strings with NULL and escape strings
                         $escaped_row = array_map(function ($value) use ($conn) {
-                            return empty($value) ? 'NULL' : "'" . trim(ltrim(mysqli_real_escape_string($conn, $value), "?")) . "'";
+                            if ($value === null || $value === '') {
+                                return 'NULL';
+                            }
+                            $trimmed = trim(ltrim(mysqli_real_escape_string($conn, $value), "?"));
+                            if (empty($value) || empty($trimmed)) return 'NULL';
+                            else return "'" . $trimmed . "'";
                         }, $row);
                         //Cut out columns that don't fit the size of columns (most likely empty columns)
                         $escaped_row = array_slice($escaped_row, 0, count($excelColumnNames));
