@@ -42,7 +42,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                 }
                 if ($first_row === $excelColumnNames) {
                     echo "<br>Columns in correct format, parsing...<br>";
-                    $missingStages = [];
+                    $missingFirstOccur = [];
+                    $missingLastOccur = [];
                     $unrecognizedStages = [];
                     $amountOfGeneraUploaded = 0;
                     $amountOfImagesFound = 0;
@@ -67,71 +68,96 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                             continue;
                         }
                         //Get base and top from row parsed in excel file, remove whitespace and double or single quotes
-                        // In the excel file, change the beginning and ending stages to First_Occurrence and Last_Occurrence
                         $baseStage = ucwords(trim(trim($escaped_row[$excelColumnNamesWithIndexes['First_Occurrence']], "'\"")));
                         if (!$baseStage || $baseStage === "NULL") {
-                            echo "Skipping $genera with empty First Occurrence.<br>";
-                            $missingStages[] = $genera;
-                            $amountOfRowsSkipped++;
-                            continue;
+                            echo "$genera has empty First Occurrence.<br>";
+                            $missingFirstOccur[] = $genera;
+                            $baseStage = "'Unknown'";
                         }
                         $topStage = ucwords(trim(trim($escaped_row[$excelColumnNamesWithIndexes['Last_Occurrence']], "'\"")));
                         if (!$topStage || $topStage === "NULL") {
-                            echo "Skipping $genera with empty Last Occurrence.<br>";
-                            $missingStages[] = $genera;
-                            $amountOfRowsSkipped++;
-                            continue;
+                            echo "$genera has empty Last Occurrence.<br>";
+                            $missingLastOccur[] = $genera;
+                            $topStage = "'Unknown'";
                         }
                         // Now do calculations about age here, geological stages in $geologicalStages
                         // First check that stages parsed from treatise file exists in $geologicalStages
-                        //base stage
+                        // Base stage
                         echo "<br>Parsing <b>$genera</b>:";
                         $conversionFailed = false;
-                        $convertedStage = standardizeGeologicalStage($baseStage, $geologicalStages);
-                        if (!$convertedStage) {
+                        if ($baseStage !== "'Unknown'") {
+                            $convertedStage = standardizeGeologicalStage($baseStage, $geologicalStages);
+                            if (!$convertedStage) {
+                                $conversionFailed = true;
+                            } else {
+                                echo "<br>Converted First Occurrence $baseStage to $convertedStage";
+                                $baseStage = $convertedStage;
+                            }
+                        } else {
+                            $conversionFailed = true;
+                        }
+                        if ($conversionFailed) {
                             echo "<br>Could not find $baseStage within International Stage";
                             if (!isset($unrecognizedStages[$baseStage])) {
                                 $unrecognizedStages[$baseStage] = [];
                             }
                             $unrecognizedStages[$baseStage][] = $genera;
-
-                            $conversionFailed = true;
-                        } else {
-                            echo "<br>Converted First Occurrence $baseStage to $convertedStage";
-                            $baseStage = $convertedStage;
+                            $baseStage = "'Unknown'";
                         }
-                        $convertedStage = standardizeGeologicalStage($topStage, $geologicalStages);
-                        if (!$convertedStage) {
-                            echo "<br>Could not find $topStage within International Stage";
-                            if (!isset($unrecognizedStages[$baseStage])) {
-                                $unrecognizedStages[$baseStage] = [];
+                        // Top stage
+                        $conversionFailed = false;
+                        if ($topStage !== "'Unknown'") {
+                            $convertedStage = standardizeGeologicalStage($topStage, $geologicalStages);
+                            if (!$convertedStage) {
+                                $conversionFailed = true;
+                            } else {
+                                echo "<br>Converted Last Occurrence $topStage to $convertedStage";
+                                $topStage = $convertedStage;
                             }
-                            $unrecognizedStages[$baseStage][] = $genera;
-                            
-                            $conversionFailed = true;
                         } else {
-                            echo "<br>Converted Last Occurrence $topStage to $convertedStage";
-                            $topStage = $convertedStage;
+                            $conversionFailed = true;
                         }
                         if ($conversionFailed) {
-                            $amountOfRowsSkipped++;
-                            continue;
+                            echo "<br>Could not find $topStage within International Stage";
+                            if (!isset($unrecognizedStages[$topStage])) {
+                                $unrecognizedStages[$topStage] = [];
+                            }
+                            $unrecognizedStages[$topStage][] = $genera;
+                            $topStage = "'Unknown'";
                         }
-                        // Now that they exist we can access values from $geologicalStages, you can see these values in TimescaleLib.php
-                        $baseData = $geologicalStages[$baseStage];
-                        $baseDate = round($baseData["base"], 2);
-                        $baseFractionUp = (float)$baseData["begin_percent_up"];
-                        $beginningStage = $baseData["stage"];
-                        $internationalBase = $baseData["international_base"];
-                        echo "<br>Computed base age of <b>$genera</b> as $baseDate.";
-                        echo "<br>Found First Occurrence <b>$beginningStage</b> within International Stage as <b>$internationalBase</b>.";
-                        $topData = $geologicalStages[$topStage];
-                        $topDate = round($topData["top"], 2);
-                        $topFractionUp = (float)$topData["end_percent_up"];
-                        $endingStage = $topData["stage"];
-                        $internationalTop = $topData["international_top"];
-                        echo "<br>Computed top age of <b>$genera</b> as $topDate.";
-                        echo "<br>Found Last Occurrence <b>$endingStage</b> within International Stage as <b>$internationalTop</b>.";
+                        // Now use base stage and top stage tp access values from $geologicalStages, you can see these values in TimescaleLib.php
+                        // If base or top stage is unknown, set all relevant fields to Unknown
+                        if ($baseStage !== "'Unknown'") {
+                            $baseData = $geologicalStages[$baseStage];
+                            $baseDate = round($baseData["base"], 2);
+                            $baseFractionUp = (float)$baseData["begin_percent_up"];
+                            $beginningStage = $baseData["stage"];
+                            $internationalBase = $baseData["international_base"];
+                            echo "<br>Computed base age of <b>$genera</b> as $baseDate.";
+                            echo "<br>Found First Occurrence <b>$beginningStage</b> within International Stage as <b>$internationalBase</b>.";
+                        } else {
+                            $baseData = "'Unknown'";
+                            $baseDate = "'Unknown'";
+                            $baseFractionUp = "'Unknown'";
+                            $beginningStage = "'Unknown'";
+                            $internationalBase = "'Unknown'";
+                        }
+                        if ($topStage !== "'Unknown'") {
+                            $topData = $geologicalStages[$topStage];
+                            $topDate = round($topData["top"], 2);
+                            $topFractionUp = (float)$topData["end_percent_up"];
+                            $endingStage = $topData["stage"];
+                            $internationalTop = $topData["international_top"];
+                            echo "<br>Computed top age of <b>$genera</b> as $topDate.";
+                            echo "<br>Found Last Occurrence <b>$endingStage</b> within International Stage as <b>$internationalTop</b>.";
+                        } else {
+                            $topData = "'Unknown'";
+                            $topDate = "'Unknown'";
+                            $topFractionUp = "'Unknown'";
+                            $endingStage = "'Unknown'";
+                            $internationalTop = "'Unknown'";
+                        }
+
                         // Use previous row values if no values are provided
                         // If provided, update value and reset all lower order values
                         // For each taxonomy level (each column):
@@ -218,25 +244,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                         echo "<br>";
                         $amountOfGeneraUploaded++;
                     }
+
+                    // Summary section
                     echo "<br>Done parsing.<br>";
-                    echo "<br>These are the genera we could not find base or top stage for:<br>";
-                    foreach($missingStages as $genera) {
+                    echo "<br>These are the genera we could not find base stage (first occurrence) for:<br>";
+                    foreach($missingFirstOccur as $genera) {
+                        echo "$genera<br>";
+                    }
+                    echo "<br>These are the genera we could not find top stage (last occurrence) for:<br>";
+                    foreach($missingLastOccur as $genera) {
                         echo "$genera<br>";
                     }
                     echo "<br>These are the stages we could not convert:<br>";
                     foreach($unrecognizedStages as $stage => $generaList) {
-                        $generaCount = count($generaList);
-                        $generaNames = implode(", ", $generaList);
-                        echo "<br><b>$stage</b> (found in $generaCount genera): $generaNames<br>";
+                        // Only display stages where conversion failed, skip those where no stage is provided
+                        if ($stage !== "'Unknown'") {
+                           $generaCount = count($generaList);
+                            $generaNames = implode(", ", $generaList);
+                            echo "<br><b>$stage</b> (found in $generaCount genera): $generaNames<br>"; 
+                        }
                     }
-                    var_dump($unrecognizedStages);
                     echo "<br>Amount of genera uploaded: $amountOfGeneraUploaded<br>";
                     echo "Amount of images found: $amountOfImagesFound<br>";
                     echo "Amount of new images added: $amountOfNewImagesAdded<br>";
                     echo "Total rows parsed: " . count($rows) . "<br>";
-                    echo "Rows skipped: $amountOfRowsSkipped<br>";
-                    echo "- Skipped due to missing First or Last Occurrence: " . count($missingStages) . "<br>";
-                    echo "- Skipped due to unrecognized stage names: " . count($unrecognizedStages) . "<br>";
+                    echo "Rows skipped due to no genus provided: $amountOfRowsSkipped<br>";
+                    echo "Amount of rows with missing First Occurrence: " . count($missingFirstOccur) . "<br>";
+                    echo "Amount of rows with missing Last Occurrence: " . count($missingLastOccur) . "<br>";
+                    // This count of unrecognized stages includes cases when no first or last occurrence is provided
+                    $totalUnrecognizedRows = array_sum(array_map('count', $unrecognizedStages));
+                    echo "Amount of rows with unrecognized stage names: " . $totalUnrecognizedRows . "<br>";
                 } else {
                     //Excel file does not contain same columns
                     echo "<br>Excel file does not contain same columns as database. The first row of the excel file should have the exact same column names (case-sensitive) in the same order.";
