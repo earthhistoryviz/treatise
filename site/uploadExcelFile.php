@@ -67,25 +67,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                             $amountOfRowsSkipped++;
                             continue;
                         }
+                        $geologyColumns = ['Beginning_age', 'First_Occurrence', 'Ending_age', 'Last_Occurrence'];
+                        foreach ($geologyColumns as $colName) {
+                            if ($escaped_row[$excelColumnNamesWithIndexes[$colName]] === 'NULL') {
+                                $escaped_row[$excelColumnNamesWithIndexes[$colName]] = "'Unknown'";
+                            }
+                        }
                         //Get base and top from row parsed in excel file, remove whitespace and double or single quotes
                         $baseStage = ucwords(trim(trim($escaped_row[$excelColumnNamesWithIndexes['First_Occurrence']], "'\"")));
-                        if (!$baseStage || $baseStage === "NULL") {
+                        if (!$baseStage || $baseStage === "NULL" || $baseStage === "Unknown") {
                             echo "$genera has empty First Occurrence.<br>";
                             $missingFirstOccur[] = $genera;
-                            $baseStage = "'Unknown'";
+                            $baseStage = "Unknown";
                         }
                         $topStage = ucwords(trim(trim($escaped_row[$excelColumnNamesWithIndexes['Last_Occurrence']], "'\"")));
-                        if (!$topStage || $topStage === "NULL") {
+                        if (!$topStage || $topStage === "NULL" || $topStage === "Unknown") {
                             echo "$genera has empty Last Occurrence.<br>";
                             $missingLastOccur[] = $genera;
-                            $topStage = "'Unknown'";
+                            $topStage = "Unknown";
                         }
                         // Now do calculations about age here, geological stages in $geologicalStages
                         // First check that stages parsed from treatise file exists in $geologicalStages
                         // Base stage
                         echo "<br>Parsing <b>$genera</b>:";
                         $conversionFailed = false;
-                        if ($baseStage !== "'Unknown'") {
+                        if ($baseStage !== "Unknown") {
                             $convertedStage = standardizeGeologicalStage($baseStage, $geologicalStages);
                             if (!$convertedStage) {
                                 $conversionFailed = true;
@@ -102,11 +108,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                                 $unrecognizedStages[$baseStage] = [];
                             }
                             $unrecognizedStages[$baseStage][] = $genera;
-                            $baseStage = "'Unknown'";
+                            $baseStage = "Unknown";
                         }
                         // Top stage
                         $conversionFailed = false;
-                        if ($topStage !== "'Unknown'") {
+                        if ($topStage !== "Unknown") {
                             $convertedStage = standardizeGeologicalStage($topStage, $geologicalStages);
                             if (!$convertedStage) {
                                 $conversionFailed = true;
@@ -123,37 +129,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                                 $unrecognizedStages[$topStage] = [];
                             }
                             $unrecognizedStages[$topStage][] = $genera;
-                            $topStage = "'Unknown'";
+                            $topStage = "Unknown";
                         }
                         // Now use base stage and top stage tp access values from $geologicalStages, you can see these values in TimescaleLib.php
                         // If base or top stage is unknown, set all relevant fields to Unknown
-                        if ($baseStage !== "'Unknown'") {
+                        if ($baseStage !== "Unknown") {
                             $baseData = $geologicalStages[$baseStage];
                             $baseDate = round($baseData["base"], 2);
                             $baseFractionUp = (float)$baseData["begin_percent_up"];
-                            $beginningStage = $baseData["stage"];
-                            $internationalBase = $baseData["international_base"];
+                            $beginningStage = "'" . $baseData["stage"] . "'";
+                            $internationalBase = "'" . $baseData["international_base"] . "'";
                             echo "<br>Computed base age of <b>$genera</b> as $baseDate.";
                             echo "<br>Found First Occurrence <b>$beginningStage</b> within International Stage as <b>$internationalBase</b>.";
                         } else {
-                            $baseData = "'Unknown'";
-                            $baseDate = "'Unknown'";
-                            $baseFractionUp = "'Unknown'";
+                            $baseDate = "NULL";
+                            $baseFractionUp = "NULL";
                             $beginningStage = "'Unknown'";
                             $internationalBase = "'Unknown'";
                         }
-                        if ($topStage !== "'Unknown'") {
+                        if ($topStage !== "Unknown") {
                             $topData = $geologicalStages[$topStage];
                             $topDate = round($topData["top"], 2);
                             $topFractionUp = (float)$topData["end_percent_up"];
-                            $endingStage = $topData["stage"];
-                            $internationalTop = $topData["international_top"];
+                            $endingStage = "'" . $topData["stage"] . "'";
+                            $internationalTop = "'" . $topData["international_top"] . "'";
                             echo "<br>Computed top age of <b>$genera</b> as $topDate.";
                             echo "<br>Found Last Occurrence <b>$endingStage</b> within International Stage as <b>$internationalTop</b>.";
                         } else {
-                            $topData = "'Unknown'";
-                            $topDate = "'Unknown'";
-                            $topFractionUp = "'Unknown'";
+                            $topDate = "NULL";
+                            $topFractionUp = "NULL";
                             $endingStage = "'Unknown'";
                             $internationalTop = "'Unknown'";
                         }
@@ -179,19 +183,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                             }
                         }
                         // On DUPLICATE KEY UPDATE is needed in the case we're tring to update a row that already exists in the table
+                        // All columns of this duplicate row will be reset
                         $sqlInsert = "INSERT INTO fossil (`" . implode("`,`", $excelColumnNames) . "`, `beginning_date`, `fraction_up_beginning_stage`, `beginning_stage`, `ending_date`, `fraction_up_ending_stage`, `ending_stage`) 
-            VALUES (" . implode(",", $escaped_row) . ", '$baseDate', '$baseFractionUp', '$internationalBase', '$topDate', '$topFractionUp', '$internationalTop') ON DUPLICATE KEY UPDATE ";
+            VALUES (" . implode(",", $escaped_row) . ", $baseDate, $baseFractionUp, $internationalBase, $topDate, $topFractionUp, $internationalTop) ON DUPLICATE KEY UPDATE ";
                         // First add columns that are defined in the excel file
                         foreach($excelColumnNames as $name) {
-                            $sqlInsert .= "`$name` = CASE WHEN VALUES(`$name`) <> '' THEN VALUES(`$name`) ELSE `$name` END,";
+                            $sqlInsert .= "`$name` = VALUES(`$name`),";
                         }
                         // Now add manually defined columns
-                        $sqlInsert .= "`beginning_date` = CASE WHEN VALUES(`beginning_date`) <> '' THEN VALUES(`beginning_date`) ELSE `beginning_date` END,";
-                        $sqlInsert .= "`fraction_up_beginning_stage` = CASE WHEN VALUES(`fraction_up_beginning_stage`) <> '' THEN VALUES(`fraction_up_beginning_stage`) ELSE `fraction_up_beginning_stage` END,";
-                        $sqlInsert .= "`beginning_stage` = CASE WHEN VALUES(`beginning_stage`) <> '' THEN VALUES(`beginning_stage`) ELSE `beginning_stage` END,";
-                        $sqlInsert .= "`ending_date` = CASE WHEN VALUES(`ending_date`) <> '' THEN VALUES(`ending_date`) ELSE `ending_date` END,";
-                        $sqlInsert .= "`fraction_up_ending_stage` = CASE WHEN VALUES(`fraction_up_ending_stage`) <> '' THEN VALUES(`fraction_up_ending_stage`) ELSE `fraction_up_ending_stage` END,";
-                        $sqlInsert .= "`ending_stage` = CASE WHEN VALUES(`ending_stage`) <> '' THEN VALUES(`ending_stage`) ELSE `ending_stage` END;";
+                        $sqlInsert .= "`beginning_date` = VALUES(`beginning_date`),";
+                        $sqlInsert .= "`fraction_up_beginning_stage` = VALUES(`fraction_up_beginning_stage`),";
+                        $sqlInsert .= "`beginning_stage` = VALUES(`beginning_stage`),";
+                        $sqlInsert .= "`ending_date` = VALUES(`ending_date`),";
+                        $sqlInsert .= "`fraction_up_ending_stage` = VALUES(`fraction_up_ending_stage`),";
+                        $sqlInsert .= "`ending_stage` = VALUES(`ending_stage`);";
                         if ($conn->query($sqlInsert) !== true) {
                             echo "<br>Error inserting data into fossil database: " . $conn->error . ". Ignoring this row and continuing.<br>";
                         } else {
@@ -258,7 +263,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
                     echo "<br>These are the stages we could not convert:<br>";
                     foreach($unrecognizedStages as $stage => $generaList) {
                         // Only display stages where conversion failed, skip those where no stage is provided
-                        if ($stage !== "'Unknown'") {
+                        if ($stage !== "Unknown") {
                            $generaCount = count($generaList);
                             $generaNames = implode(", ", $generaList);
                             echo "<br><b>$stage</b> (found in $generaCount genera): $generaNames<br>"; 
