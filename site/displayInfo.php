@@ -208,13 +208,13 @@
             <div id="beginning_stage" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Beginning Stage in Treatise Usage: &nbsp;</b>
               <div id="beginning_stage" class="editable-text">
-                <?= eliminateParagraphs($fossilData["Beginning_age"]) ?>
+                <?= $fossilData["Beginning_age"] === "Unknown" ? "Not provided" : eliminateParagraphs($fossilData["Beginning_age"]) ?>
               </div>
             </div>
             <div id="beginning_stage" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Beginning International Stage: &nbsp;</b>
               <div id="beginning_stage" class="editable-text">
-                <?= eliminateParagraphs($fossilData["beginning_stage"]) ?>
+                <?= $fossilData["beginning_stage"] === "Unknown" ? "" : eliminateParagraphs($fossilData["beginning_stage"]) ?>
               </div>
             </div>
             <div id="fraction_up_beginning_stage" class="horiz" style="text-align: left;">
@@ -232,13 +232,13 @@
             <div id="beginning_stage" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Ending Stage in Treatise Usage: &nbsp;</b>
               <div id="beginning_stage" class="editable-text">
-                <?= eliminateParagraphs($fossilData["Ending_age"]) ?>
+                <?= $fossilData["Ending_age"] === "Unknown" ? "Not provided" : eliminateParagraphs($fossilData["Ending_age"]) ?>
               </div>
             </div>
             <div id="ending_stage" class="horiz" style="text-align: left;">
               <b>&nbsp;&nbsp;&nbsp;&nbsp;Ending International Stage: &nbsp;</b>
               <div id="ending_stage" class="editable-text">
-                <?= eliminateParagraphs($fossilData["ending_stage"]) ?>
+                <?= $fossilData["ending_stage"] === "Unknown" ? "" : eliminateParagraphs($fossilData["ending_stage"]) ?>
               </div>
             </div>
             <div id="fraction_up_ending_stage" class="horiz" style="text-align: left;">
