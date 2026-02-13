@@ -4,6 +4,8 @@ include_once("SqlConnection.php");
 $rawSearch = $_GET['searchquery'];
 $classfilter = $_GET['classfilter'];
 $orderfilter = $_GET['orderfilter'];
+$subphylumfilter = $_GET['subphylumfilter'];
+$subclassfilter = $_GET['subclassfilter'];
 $geographyfilter = $_GET['geographyfilter'];
 $stagefilter = $_GET['stagefilter'];
 $agefilterstart = $_GET['agefilterstart'];
@@ -27,12 +29,20 @@ if (!$classfilter || $classfilter == "All") {
 if (!$orderfilter || $orderfilter == "All") {
     $orderfilter = "";
 }
+if (!$subphylumfilter || $subphylumfilter == "All") {
+    $subphylumfilter = "";
+}
+if (!$subclassfilter || $subclassfilter == "All") {
+    $subclassfilter = "";
+}
 
 $searchquery = '%' . $rawSearch . '%';
 $geographyfilter = '%' . $geographyfilter . '%';
 $stagefilter = '%' . $stagefilter . '%';
 $classfilter = '%' . $classfilter . '%';
 $orderfilter = '%' . $orderfilter . '%';
+$subphylumfilter = '%' . $subphylumfilter . '%';
+$subclassfilter = '%' . $subclassfilter . '%';
 
 // POTENTIAL OPTIMIZATION: Instead of selecting all columns, we could select only the columns we need and echo early
 // allColumnNames comes from SqlConnection.php, it is an array of all the column names in the fossil table
@@ -47,17 +57,27 @@ if ($addSynonyms == "true") {
 }
 
 $sql = "SELECT * FROM fossil WHERE Genus LIKE ? AND (geography LIKE ? OR geography IS NULL) AND beginning_stage LIKE ?";
+if ($subphylumfilter == "%%") {
+    $sql .= " AND (Subphylum LIKE ? OR Subphylum IS NULL)";
+} else {
+    $sql .= " AND Subphylum LIKE ?";
+}
 if ($classfilter == "%%") {
     $sql .= " AND (Class LIKE ? OR Class IS NULL)";
 } else {
     $sql .= " AND Class LIKE ?";
+}
+if ($subclassfilter == "%%") {
+    $sql .= " AND (Subclass LIKE ? OR Subclass IS NULL)";
+} else {
+    $sql .= " AND Subclass LIKE ?";
 }
 if ($orderfilter == "%%") {
     $sql .= " AND (`Order` LIKE ? OR `Order` IS NULL)";
 } else {
     $sql .= " AND `Order` LIKE ?";
 }
-$params = ["sssss", &$searchquery, &$geographyfilter, &$stagefilter, &$classfilter, &$orderfilter];
+$params = ["sssssss", &$searchquery, &$geographyfilter, &$stagefilter, &$subphylumfilter, &$classfilter, &$subclassfilter, &$orderfilter];
 
 if ($agefilterstart != "") {
     $sql .= " AND NOT (beginning_date < ? OR ending_date > ?) "

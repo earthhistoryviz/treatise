@@ -18,17 +18,23 @@
     include_once("SqlConnection.php");
 
     // Define group types for selection
-    $groupingTypes = ['Class', 'Order'];
+    $groupingTypes = ['Subphylum', 'Class', 'Subclass', 'Order'];
 
     // Get selected grouping type from form submission, default is 'Class'
     $selectedGroupingType = isset($_GET['groupingType']) ? $_GET['groupingType'] : 'Class';
 
     // Fetch available groupings (either Class or Order) from database based on selected grouping type
     $allGroupings = [];
-    $sqlGrouping = "SELECT DISTINCT `$selectedGroupingType` FROM fossil WHERE `$selectedGroupingType` IS NOT NULL";
+    $sqlGrouping = "SELECT DISTINCT `$selectedGroupingType` FROM fossil 
+    WHERE `$selectedGroupingType` IS NOT NULL 
+    AND `$selectedGroupingType` != '' 
+    AND `$selectedGroupingType` != 'None'";
     $resultGrouping = $conn->query($sqlGrouping);
     while ($row = $resultGrouping->fetch_assoc()) {
-        $allGroupings[] = $row[$selectedGroupingType];
+        $val = $row[$selectedGroupingType];
+        if (!empty($val) && $val !== 'None') {
+            $allGroupings[] = $val;
+        }
     }
     sort($allGroupings);
     $conn->close();
@@ -86,7 +92,14 @@
         $counts = [];
 
         foreach ($selectedGroupings as $currentGrouping) {
-            $filterType = ($selectedGroupingType == 'Class') ? 'classfilter' : 'orderfilter';
+            // $filterType = ($selectedGroupingType == 'Class') ? 'classfilter' : 'orderfilter';
+            $filterMap = [
+                'Subphylum' => 'subphylumfilter',
+                'Class' => 'classfilter',
+                'Subclass' => 'subclassfilter',
+                'Order' => 'orderfilter'
+            ];
+            $filterType = $filterMap[$selectedGroupingType];
             $apiUrl = "https://{$_SERVER['HTTP_HOST']}.treatise.geolex.org/searchAPI.php?$filterType=" . urlencode($currentGrouping);
             $response = file_get_contents($apiUrl);
             $data = json_decode($response, true)["data"];
