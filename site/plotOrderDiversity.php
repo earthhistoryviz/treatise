@@ -18,10 +18,27 @@
     include_once("SqlConnection.php");
 
     // Define group types for selection
-    $groupingTypes = ['Subphylum', 'Class', 'Subclass', 'Order'];
+    // $groupingTypes = ['Subphylum', 'Class', 'Subclass', 'Order'];
+    $allPossibleTypes = ['Subphylum', 'Class', 'Subclass', 'Order'];
+    $groupingTypes = [];
+
+    foreach ($allPossibleTypes as $type) {
+        $sqlCheck = "SELECT COUNT(*) as cnt FROM fossil 
+                    WHERE `$type` IS NOT NULL 
+                    AND `$type` != '' 
+                    AND `$type` != 'None'";
+        $resultCheck = $conn->query($sqlCheck);
+        $rowCheck = $resultCheck->fetch_assoc();
+        if ($rowCheck['cnt'] > 0) {
+            $groupingTypes[] = $type;
+        }
+    }
 
     // Get selected grouping type from form submission, default is 'Class'
     $selectedGroupingType = isset($_GET['groupingType']) ? $_GET['groupingType'] : 'Class';
+    if (!in_array($selectedGroupingType, $groupingTypes)) {
+        $selectedGroupingType = $groupingTypes[0];
+    }
 
     // Fetch available groupings (either Class or Order) from database based on selected grouping type
     $allGroupings = [];
