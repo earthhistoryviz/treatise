@@ -33,7 +33,8 @@ foreach ($stages as $stage) {
 }
 
 $classesWithOrders = [];
-$sqlClassesOrders = "SELECT DISTINCT Class, `Order` FROM fossil";
+$allOrders = [];
+$sqlClassesOrders = "SELECT DISTINCT Class, `Order` FROM fossil WHERE `Order` IS NOT NULL AND `Order` != '' AND `Order` != 'None'";
 $resultClassesOrders = $conn->query($sqlClassesOrders);
 while ($row = $resultClassesOrders->fetch_assoc()) {
     $class = $row["Class"];
@@ -42,7 +43,11 @@ while ($row = $resultClassesOrders->fetch_assoc()) {
         $classesWithOrders[$class] = [];
     }
     $classesWithOrders[$class][] = $order;
+    if (!in_array($order, $allOrders)) {
+        $allOrders[] = $order;
+    }
 }
+sort($allOrders);
 
 ?>
 <div class="container mt-5">
@@ -107,9 +112,16 @@ while ($row = $resultClassesOrders->fetch_assoc()) {
 							}
 							var chosen = box.options[box.selectedIndex].value;
 							var orderSearch = document.getElementById("orderSearch");
+							orderSearch.disabled = false;
 							if (chosen == "All") {
-								orderSearch.disabled = true;
-								orderSearch.innerHTML = "<option value='All'>All</option>";
+								var allOrdersHTML = "<option value='All'>All</option>";
+								<?php
+								foreach ($allOrders as $order) {
+									$selected = (isset($_GET['orderSearch']) && $_GET['orderSearch'] == $order) ? 'selected' : '';
+									echo "allOrdersHTML += \"<option value='$order' $selected>$order</option>\";";
+								}
+								?>
+								orderSearch.innerHTML = allOrdersHTML;
 							} else {
 								orderSearch.disabled = false;
 								<?php

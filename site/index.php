@@ -28,10 +28,10 @@
         $searchTerm = $_GET['search'];
         $url = "http://localhost/searchAPI.php"
         ."?searchquery=".urlencode($_GET["search"])
-        ."&classfilter=".$_GET["classSearch"]
-        ."&orderfilter=".$_GET["orderSearch"]
-        ."&geographyfilter=".$_GET["geographySearch"]
-        ."&stagefilter=".$_GET["stageSearch"]
+        ."&classfilter=".urlencode($_GET["classSearch"])
+        ."&orderfilter=".urlencode($_GET["orderSearch"])
+        ."&geographyfilter=".urlencode($_GET["geographySearch"])
+        ."&stagefilter=".urlencode($_GET["stageSearch"])
         ."&agefilterstart=".$_GET["agefilterstart"]
         ."&agefilterend=".$_GET["agefilterend"];
         $raw = file_get_contents($url);
