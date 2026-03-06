@@ -35,20 +35,13 @@ if (!isset($argv[1])) {
     die("\nProvide PDF file name. \nphp import_taxonomy_links.php <excel_file_name> <pdf_file_name>\n");
 }
 
-$sql_drop = "DROP TABLE IF EXISTS taxonomy_pdf_links";
-if ($conn->query($sql_drop) === true) {
-    echo "\nTable taxonomy_pdf_links dropped successfully.";
-} else {
-    echo "\nNo table taxonomy_pdf_links present, creating new table.";
-}
-
 /* Create the table for toxonomy names and pdf links correspondence here
  * taxonomy_level -- 'Phylum', 'Class', 'Order', etc.
  * taxonomy_name -- 'Charophyta', 'Charales', etc.
  * pdf_name -- e.g. Treatise-Charophytavolume.pdf
  * page_number -- page number in PDF file
  */
-$sql_create = "CREATE TABLE taxonomy_pdf_links (
+$sql_create = "CREATE TABLE IF NOT EXISTS taxonomy_pdf_links (
     id INT AUTO_INCREMENT PRIMARY KEY,
     taxonomy_level VARCHAR(50) NOT NULL,
     taxonomy_name VARCHAR(255) NOT NULL,
