@@ -71,7 +71,7 @@ sort($allOrders);
 
 					<button id="submitbtn" value="filter" type="submit" class="btn btn-primary mb-2">Submit</button>
 				</div>
-				<div class ="filter-container d-flex align-items-center justify-content-center w-100">
+				<div class="filter-container d-flex flex-wrap align-items-center justify-content-center w-100">
 					<h6 style="white-space: nowrap;">Search By:</h6>
 
 					<div class="form-group mx-sm-3 mb-2">
