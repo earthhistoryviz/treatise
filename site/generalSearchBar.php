@@ -97,14 +97,16 @@ sort($allOrders);
 						    if (isset($classesWithOrders)) {
 						        foreach ($classesWithOrders as $class => $orders) {
 						            $selected = (isset($_GET['classSearch']) && $_GET['classSearch'] == $class) ? 'selected' : '';
-						            echo "<option value='$class' $selected>$class</option>";
+						            echo "<option value='" . htmlspecialchars($class) . "' $selected>" . htmlspecialchars($class) . "</option>";
 						        }
 						    }
-?>
+							?>
 						</select>
 					</div>
 
 					<script>
+						var classesWithOrders = <?php echo json_encode($classesWithOrders); ?>;
+    					var allOrders = <?php echo json_encode($allOrders); ?>;
 						function setOrder() {
 							var box = document.getElementById("classSearch");
 							if (!box) {
@@ -113,32 +115,15 @@ sort($allOrders);
 							var chosen = box.options[box.selectedIndex].value;
 							var orderSearch = document.getElementById("orderSearch");
 							orderSearch.disabled = false;
-							if (chosen == "All") {
-								var allOrdersHTML = "<option value='All'>All</option>";
-								<?php
-								foreach ($allOrders as $order) {
-									$selected = (isset($_GET['orderSearch']) && $_GET['orderSearch'] == $order) ? 'selected' : '';
-									echo "allOrdersHTML += \"<option value='$order' $selected>$order</option>\";";
-								}
-								?>
-								orderSearch.innerHTML = allOrdersHTML;
-							} else {
-								orderSearch.disabled = false;
-								<?php
-    if (isset($classesWithOrders)) {
-        $selectedAll = (isset($_GET['orderSearch']) && $_GET['orderSearch'] == 'All') ? 'selected' : '';
-        echo "orderSearch.innerHTML = \"<option value='All' $selectedAll>All</option>\";";
-        foreach ($classesWithOrders as $class => $orders) {
-            echo "if (chosen == '$class') {";
-            foreach ($orders as $order) {
-                $selected = (isset($_GET['orderSearch']) && $_GET['orderSearch'] == $order) ? 'selected' : '';
-                echo "orderSearch.innerHTML += \"<option value='$order' $selected>$order</option>\";";
-            }
-            echo "}";
-        }
-    }
-?>
-							}
+							var orders = (chosen == "All") ? allOrders : (classesWithOrders[chosen] || []);
+
+							var currentVal = "<?php echo isset($_GET['orderSearch']) ? htmlspecialchars($_GET['orderSearch']) : 'All'; ?>";
+							var html = "<option value='All'>All</option>";
+							orders.forEach(function(order) {
+								var selected = (order === currentVal) ? " selected" : "";
+								html += "<option value='" + order + "'" + selected + ">" + order + "</option>";
+							});
+							orderSearch.innerHTML = html;
 						}
 					</script>
 
