@@ -2,6 +2,12 @@
 include_once("navBar.php");
 include_once("TimescaleLib.php");
 include_once("SqlConnection.php");
+
+// Get the genus name from the server domain
+$siteGenus = ucfirst(strtolower($_SERVER['SERVER_NAME']));
+// Remove any domain suffix if needed (e.g., "brachiopod.treatise.geolex.org" -> "brachiopod")
+$siteGenus = explode('.', $siteGenus)[0];
+
 $stages = parseTimescale("./uploads/default_timescale.xlsx");
 $periods = [];
 foreach ($stages as $stage) {
@@ -54,7 +60,7 @@ sort($allOrders);
 	<div class="row justify-content-center">
     	<div class="col-md-8">
 		  <div class="title-section text-center mb-4">
-        <h2>Welcome to the Treatise on Invertebrate Paleontology!</h2>
+		  <?php if (isset($_GET['search']) && !empty(trim($_GET['search']))) { echo 'Welcome to the ' . htmlspecialchars(ucfirst(trim($_GET['search']))) . ' on Invertebrate Paleontology!'; } else { echo 'Welcome to the Treatise on Invertebrate Paleontology!'; } ?></h2> -->
         <p>Please enter a genera name to retrieve more information.</p>
       </div>
 			<form id='form' action="index.php" method="GET" class="form-inline">
