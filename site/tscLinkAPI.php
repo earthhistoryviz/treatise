@@ -45,6 +45,7 @@ function sendDatapackToTsconline($datapack, $url, $token, $siteUrlTreatise) {
     $postFields['references'] = json_encode([]);
     $postFields['tags'] = json_encode(["Treatise"]);
     $postFields['hasFiles'] = 'false';
+    $postFields['priority'] = 1;
 
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_POST, true);
