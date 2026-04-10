@@ -4,7 +4,7 @@ if ($_SESSION["loggedIn"]) {
 } else { ?>
     <div class="topnav">
       <div class="country-logo">
-        <img src="/noun_Earth_2199992.svg" alt="Logo">
+        <a href="https://treatise.geolex.org/"><img src="/noun_Earth_2199992.svg" alt="Logo" style="height: auto; max-height: 45px;"></a>
         <h5 class="region-name">Treatise</h5>
       </div>
       <a href="index.php">Home</a>
