@@ -1,6 +1,8 @@
 <?php
 
 include_once("SqlConnection.php");
+include_once("TimescaleLib.php");
+$timescale = parseTimescale("./uploads/default_timescale.xlsx");
 $rawSearch = $_GET['searchquery'];
 $classfilter = $_GET['classfilter'];
 $orderfilter = $_GET['orderfilter'];
@@ -14,6 +16,16 @@ $periodfilter = $_GET['periodfilter'];
 $genusOnly = $_GET['genusOnly'];
 $addSynonyms = $_GET['addSynonyms'];
 
+// Map stages to ages
+$stageMap = [];
+foreach ($timescale as $s) {
+    $stageMap[strtolower(trim($s['stage']))] = [
+        'base' => (float)$s['base'],
+        'top'  => (float)$s['top']
+    ];
+}
+
+// If end date is not given or is invalid (end older than start; number larger means earlier/farther down from now)
 if (!isset($_GET['agefilterend']) || $agefilterend == "" || $agefilterstart < $agefilterend) {
     $agefilterend = $agefilterstart;
 }
@@ -21,6 +33,22 @@ if (!$geographyfilter || $geographyfilter == "All") {
     $geographyfilter = "";
 }
 if (!$stagefilter || $stagefilter == "All") {
+    $stagefilter = "";
+} elseif ($agefilterstart == "") {
+    // stagefilter applied; agefilterstart not given
+    // convert stagefilter into age range
+    $key = strtolower(trim($stagefilter));
+    if (isset($stageMap[$key])) {
+        $agefilterstart = $stageMap[$key]['base'];
+        $agefilterend   = $stageMap[$key]['top'];
+    }
+     else {
+        // age filter is set to an invalid number until the input stage is found in stageMap
+        // this ensures nothing is returned when provided with an incorrect/empty stage
+        $agefilterstart = -1;
+        $agefilterend   = -1;
+    }
+    // stagefilter converted into agefilter; stagefilter is no longer used
     $stagefilter = "";
 }
 if (!$classfilter || $classfilter == "All") {
