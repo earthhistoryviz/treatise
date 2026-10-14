@@ -159,7 +159,7 @@
         <div>
           <button class="btn btn-primary mt-1" id="downloadBtn">Download Diversity Curves</button>
           <button class="btn btn-primary mt-1" id="goToSiteBtn"
-            onclick="window.location.href='tscLinkAPI.php'">
+            onclick="window.open('tscLinkAPI.php', '_blank')">
             View Curves on TSC Online
           </button>
         </div>
