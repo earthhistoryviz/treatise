@@ -325,7 +325,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["upfile"])) {
 }
 echo "</div>";
 
-exec("python3 treatise_plots.py", $output, $error);
+$siteName = ucfirst(strtolower($_SERVER['SERVER_NAME']));
+exec("python3 treatise_plots.py " . escapeshellarg($siteName), $output, $error);
 
 function normalizeCaption($caption) {
     // Lowercase, remove parentheses and periods, and convert non-alphanum to underscores

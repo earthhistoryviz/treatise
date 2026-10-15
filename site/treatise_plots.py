@@ -5,6 +5,12 @@ import matplotlib.patches as patches
 from matplotlib.transforms import Bbox
 import math
 import numpy as np
+import sys
+
+'''
+Originally this code calculated how many fossils existed in each binning interval using the dates provided in the sql database
+Ogg wanted us to instead use API calls similar to the home page, i left originally code just in case
+'''
 
 def connect_to_db():
     return mysql.connector.connect(
@@ -17,7 +23,7 @@ def connect_to_db():
 def fetch_data():
     conn = connect_to_db()
     query = """
-    SELECT beginning_date, ending_date
+    SELECT beginning_date, ending_date, genus
     FROM fossil
     ORDER BY beginning_date DESC, ending_date DESC;
     """
@@ -101,7 +107,7 @@ def process_data(df):
 
     return total_genera, new_genera_grouped, extinct_genera_grouped, filtered_out
 
-def plot_data(total_genera, new_genera, extinct_genera, filtered_out):
+def plot_data(total_genera, new_genera, extinct_genera, filtered_out, site_name=''):
     figure_padding = 10
     
     stage_ranges = {
@@ -149,7 +155,7 @@ def plot_data(total_genera, new_genera, extinct_genera, filtered_out):
         fig1.suptitle("Note: There are {} fossils older than 750 Ma not shown on the following charts".format(filtered_out), fontsize=16, ha='center', va='bottom', y=0.95)
     ax1.plot(total_genera['date'], total_genera['total_genera'], color='b')
     ax1.set_xlim([max_date, min_date - figure_padding])
-    ax1.set_title('Total Number of Genera per Date')
+    ax1.set_title(f'Total Number of Genera per Date ({site_name})')
     ax1.set_xlabel('Date (Ma)')
     ax1.set_ylabel('Number of Genera')
     ax1.set_ylim(stage_y_position, y_max + dynamic_height)
@@ -191,7 +197,7 @@ def plot_data(total_genera, new_genera, extinct_genera, filtered_out):
     fig2, ax2 = plt.subplots(figsize=(20, 8))
     ax2.plot(new_genera['beginning_date'], new_genera['new_genera'], color='g')
     ax2.set_xlim([max_date, min_date - figure_padding])
-    ax2.set_title('Number of New Genera per Date')
+    ax2.set_title(f'Number of New Genera per Date ({site_name})')
     ax2.set_xlabel('Date (Ma)')
     ax2.set_ylabel('Number of New Genera')
     ax2.set_ylim(stage_y_position, y_max + dynamic_height)
@@ -212,7 +218,7 @@ def plot_data(total_genera, new_genera, extinct_genera, filtered_out):
     fig3, ax3 = plt.subplots(figsize=(20, 8))
     ax3.plot(extinct_genera['ending_date'], extinct_genera['extinct_genera'], color='r')
     ax3.set_xlim([max_date, min_date - figure_padding])
-    ax3.set_title('Number of Extinct Genera per Date')
+    ax3.set_title(f'Number of Extinct Genera per Date ({site_name})')
     ax3.set_xlabel('Date (Ma)')
     ax3.set_ylabel('Number of Extinct Genera')
     ax3.set_ylim(stage_y_position, y_max + dynamic_height)
@@ -240,27 +246,41 @@ def save_data_to_csv(total_genera, new_genera, extinct_genera):
 def process_dataV2(df):
     # df is already sorted by beginning_date in descending order
     oldest_date = min(int(math.ceil(df['beginning_date'][0] / 5.0) * 5), 750) # ogg wanted us to not include anything oloder than 750 Ma
-    time_bins = np.arange(oldest_date, -1, -5)  # Create bins from oldest_date down to 0, in steps of 5
-    total_genera_map = {i: 0 for i in range(oldest_date, -1, -5)}  # keys from oldest_date down to 0, in steps of 5
-    new_genera_map = {i: 0 for i in range(oldest_date, -1, -5)}
-    extinct_genera_map = {i: 0 for i in range(oldest_date, -1, -5)}
+    # time_bins = np.arange(oldest_date, -1, -5)  # Create bins from oldest_date down to 0, in steps of 5
+    # total_genera_map = {i: 0 for i in range(oldest_date, -1, -5)}  # keys from oldest_date down to 0, in steps of 5
+    # new_genera_map = {i: 0 for i in range(oldest_date, -1, -5)}
+    # extinct_genera_map = {i: 0 for i in range(oldest_date, -1, -5)}
+    time_bins = np.arange(float(oldest_date), -1.0, -1.0)  # Creates float bins from oldest_date to 0.0 (excluding -1.0)
+    total_genera_map = {i: 0.0 for i in time_bins}
+    new_genera_map = {i: 0.0 for i in time_bins}
+    extinct_genera_map = {i: 0.0 for i in time_bins}
+
     filtered_out = 0
 
     for index, row in df.iterrows():
-        beginning_date = float(row['beginning_date'])
-        ending_date = float(row['ending_date'])
+        beginning_date = row['beginning_date']
+        ending_date = row['ending_date']
+        genus = row['genus']
         if beginning_date > 750 or ending_date > 750:
             # Might not be ideal thing to do
             filtered_out += 1
             continue
         for time in time_bins:
+            # 5 bins
+            # if beginning_date >= time and (ending_date <= time or ending_date == 0):
+            #     total_genera_map[time] += 1
+            # if beginning_date >= time and beginning_date < time + 5:
+            #     new_genera_map[time] += 1
+            # if ending_date > 0 and ending_date >= time and ending_date < time + 5:
+            #     extinct_genera_map[time] += 1
+            # 1 bins
             if beginning_date >= time and (ending_date <= time or ending_date == 0):
                 total_genera_map[time] += 1
-            if beginning_date >= time and beginning_date < time + 5:
+            if beginning_date >= time and beginning_date < time + 1:
                 new_genera_map[time] += 1
-            if ending_date > 0 and ending_date >= time and ending_date < time + 5:
+            if ending_date > 0 and ending_date >= time and ending_date < time + 1:
                 extinct_genera_map[time] += 1
-        
+            
     # output_df = pd.DataFrame({
     #     'TimeBlock': sorted(total_genera_map.keys()),
     #     'Total': [total_genera_map[t] for t in sorted(total_genera_map.keys())],
@@ -285,14 +305,32 @@ def process_dataV2(df):
         'extinct_genera': list(extinct_genera_map.values())
     })
 
+    total_genera, new_genera_grouped, extinct_genera_grouped = trim_trailing_zeros_uniform(
+        [total_genera, new_genera_grouped, extinct_genera_grouped],
+        ['total_genera', 'new_genera', 'extinct_genera']
+    )
+
     return total_genera, new_genera_grouped, extinct_genera_grouped, filtered_out
 
+def trim_trailing_zeros_uniform(dfs, value_cols):
+    last_non_zero_indices = []
+    for df, col in zip(dfs, value_cols):
+        non_zero = df[df[col] > 0]
+        if not non_zero.empty:
+            last_non_zero_indices.append(non_zero.index[-1])
+
+    if not last_non_zero_indices:
+        return [df.iloc[0:0] for df in dfs]  # All empty
+
+    cutoff = max(last_non_zero_indices) + 1
+
+    return [df.iloc[:cutoff] for df in dfs]
 
 if __name__ == "__main__":
     df = fetch_data()
-    pd.set_option('display.max_rows', None)
-    pd.set_option('display.max_columns', None)
-    process_dataV2(df)
+    # pd.set_option('display.max_rows', None)
+    # pd.set_option('display.max_columns', None)
     total_genera, new_genera, extinct_genera, filtered_out = process_dataV2(df)
-    plot_data(total_genera, new_genera, extinct_genera, filtered_out)
+    site_name = sys.argv[1] if len(sys.argv) > 1 else ''
+    plot_data(total_genera, new_genera, extinct_genera, filtered_out, site_name)
     # save_data_to_csv(total_genera, new_genera, extinct_genera)
